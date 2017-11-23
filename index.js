@@ -236,7 +236,7 @@ export class Utils {
     }
 
     static createParamQueryTemplate (parserOptions, routeOptions, routeParams, paramMatch) {
-        return createParamPathTemplate(parserOptions, routeOptions, routeParams, paramMatch);
+        return this.createParamPathTemplate(parserOptions, routeOptions, routeParams, paramMatch);
     }
 
     static createParamUniversalTemplate (parserOptions, routeOptions, routeParams, paramMatch) {
@@ -364,7 +364,7 @@ export class Utils {
             });
             for (let p = 0, pl = pathParamTools.length; p < pl; p++) {
                 const pathParamTool = pathParamTools[p];
-                parsedValue.components[p] = pathParamTool.generateParsedValue(userParams);
+                parsedValue.components[p] = pathParamTool.generateParsedValue(userParams) || '';
             }
             return parsedValue;
         };
@@ -695,7 +695,7 @@ export default class RussianRouter {
         if (!match) {
             throw 'Invalid ' + entity + ' cannot be splitted!';
         }
-        if (match[3] && match[5][0] !== '/') {
+        if (match[3] && match[5][0] !== '/' && !paramRegExp.test(match[5])) {
             if (match[5]) {
                 throw 'Path should be absolute when domain is specified!';
             } else {
