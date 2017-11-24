@@ -142,12 +142,12 @@ test('Router option trailingSlashSensitive works correctly', () => {
 });
 
 test('Router option caseSensitive works correctly', () => {
-    const getConstUrl = (letterCase='Lower') => {
-        return router.generateUrl('const' + letterCase + 'Case');
+    const getConstUrl = () => {
+        return router.generateUrl('constRandomCase');
     };
 
-    const getParamUrl = (letterCase='Lower') => {
-        return router.generateUrl('const' + letterCase + 'Case', {
+    const getParamUrl = () => {
+        return router.generateUrl('constRandomCase', {
             protocol: 'hTtP',
             domain: 'lOcAlHoSt',
             port: 8080,
