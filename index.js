@@ -1,5 +1,3 @@
-import Utils from './Utils.js';
-import RussianRouter from './RussianRouter.js';
+import RussianRouter from './sources/RussianRouter.js';
 
-export {Utils};
 export default RussianRouter;
