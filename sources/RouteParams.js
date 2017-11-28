@@ -14,17 +14,17 @@ export default class RouteParams {
         for (let r in rawRouteParams) {
             let rawRouteParam = rawRouteParams[r];
             if (isMatchGenerate(rawRouteParam)) {
-                rawRouteParam.match = RouteParams.normalizeSection(rawRouteParam.match);
-                rawRouteParam.generate = RouteParams.normalizeSection(rawRouteParam.generate);
+                rawRouteParam.match = RouteParams.normalizeItems(rawRouteParam.match);
+                rawRouteParam.generate = RouteParams.normalizeItems(rawRouteParam.generate);
             } else {
                 rawRouteParam = {
-                    match: RouteParams.normalizeSection(rawRouteParam),
-                    generate: RouteParams.normalizeSection()
+                    match: RouteParams.normalizeItems(rawRouteParam),
+                    generate: RouteParams.normalizeItems()
                 };
             }
             if (rawRouteParam.match.length || rawRouteParam.generate.length) {
                 if (!rawRouteParam.generate.length) {
-                    rawRouteParam.generate = RouteParams.completeGenerateSection(rawRouteParam.match);
+                    rawRouteParam.generate = RouteParams.completeGenerateItems(rawRouteParam.match);
                 }
                 parsedParams[r] = rawRouteParam;
             }
@@ -37,8 +37,8 @@ export default class RouteParams {
         return this._parsedParams[paramName] || emptyMatchGenerate;
     }
 
-    static completeGenerateSection (matchSection) {
-        for (let matchItem of matchSection) {
+    static completeGenerateItems (matchItems) {
+        for (let matchItem of matchItems) {
             if (typeof matchItem !== 'function' && matchItem instanceof RegExp === false) {
                 return [matchItem];
             }
@@ -46,14 +46,14 @@ export default class RouteParams {
         return [];
     }
 
-    static normalizeSection (rawRouteParamSection) {
-        if (rawRouteParamSection instanceof Array) {
-            const filteredRouteParam = rawRouteParamSection.filter((rawRouteParamItem) => !isEmpty(rawRouteParamItem));
-            if (filteredRouteParam.length) {
-                return filteredRouteParam;
+    static normalizeItems (rawRouteParamItems) {
+        if (rawRouteParamItems instanceof Array) {
+            const filteredRouteParamItems = rawRouteParamItems.filter((rawRouteParamItem) => !isEmpty(rawRouteParamItem));
+            if (filteredRouteParamItems.length) {
+                return filteredRouteParamItems;
             }
-        } else if (!isEmpty(rawRouteParamSection)) {
-            return [rawRouteParamSection];
+        } else if (!isEmpty(rawRouteParamItems)) {
+            return [rawRouteParamItems];
         }
         return [];
     }

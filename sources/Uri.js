@@ -1,24 +1,26 @@
 import {
     splitUri,
-    getRegExp,
     forEachPartName,
-    getPartClass
+    getRegExp,
+    getPartConstructor
 } from './utils.js';
-import Protocol from './Protocol.js';
-import Domain from './Domain.js';
-import Port from './Port.js';
-import Path from './Path.js';
-import Query from './Query.js';
-import Hash from './Hash.js';
+import RouterError from './RouterError.js';
 
 export default class Uri {
     constructor (rawUri) {
-        const splittedUri = splitUri(rawUri, this.getRegExp(), this.getName());
+        let splittedUri;
+        try {
+            splittedUri = splitUri(rawUri, this._getRegExp());
+        } catch(error) {
+            this._handleError(error);
+        }
+
         const parsedUri = {};
         forEachPartName((partName) => {
-            const Constructor = getPartClass(partName);
-            parsedUri[partName] = new Constructor(splittedUri[partName]);
+            const PartConstructor = getPartConstructor(partName);
+            parsedUri[partName] = new PartConstructor(splittedUri[partName]);
         });
+
         this._value = {
             rawUri,
             splittedUri,
@@ -44,11 +46,13 @@ export default class Uri {
         return this._value.parsedUri;
     }
 
-    getName () {
-        return 'URI';
+    _getRegExp () {
+        return getRegExp('uri');
     }
 
-    getRegExp () {
-        return getRegExp('uri');
+    _handleError (error) {
+        throw new RouterError(RouterError[error.code], {
+            entity: 'URI'
+        });
     }
 }

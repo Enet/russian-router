@@ -2,23 +2,23 @@ import Part from './Part.js';
 
 export default class Query extends Part {
     constructor (rawQuery) {
-        super(rawQuery);
+        rawQuery = super(rawQuery);
 
-        rawQuery = ((rawQuery || '') + '') || null;
         let components = {};
         if (rawQuery) {
             const queryCouples = rawQuery.split('&');
             queryCouples.forEach((queryCouple) => {
                 const equalIndex = queryCouple.indexOf('=');
                 if (equalIndex === -1) {
-                    components[queryCouple] = '';
+                    components[decodeURIComponent(queryCouple)] = '';
                 } else {
-                    const queryKey = queryCouple.substr(0, equalIndex);
-                    const queryValue = queryCouple.substr(equalIndex + 1);
-                    components[decodeURIComponent(queryKey)] = decodeURIComponent(queryValue);
+                    const queryCoupleKey = decodeURIComponent(queryCouple.substr(0, equalIndex));
+                    const queryCoupleValue = decodeURIComponent(queryCouple.substr(equalIndex + 1));
+                    components[queryCoupleKey] = queryCoupleValue;
                 }
             });
         }
+
         this._value = {
             rawQuery,
             components
@@ -30,11 +30,14 @@ export default class Query extends Part {
     }
 
     toString () {
-        let rawQuery = [];
+        const components = this.toObject();
+        const queryCouples = [];
         for (let c in components) {
-            rawQuery.push(encodeURIComponent(c) + '=' + encodeURIComponent(components[c]));
+            const queryCoupleKey = encodeURIComponent(c);
+            const queryCoupleValue = encodeURIComponent(components[c]);
+            queryCouples.push(queryCoupleKey + '=' + queryCoupleValue);
         }
-        rawQuery = rawQuery.join('&');
+        const rawQuery = queryCouples.join('&');
         return rawQuery;
     }
 
@@ -44,6 +47,9 @@ export default class Query extends Part {
 
     toLowerCase (condition) {
         if (!condition) {
+            return this;
+        }
+        if (this.isEmpty()) {
             return this;
         }
         return new Query(this._value.rawQuery.toLowerCase());

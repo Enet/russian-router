@@ -13,10 +13,13 @@ export default class Part {
     }
 
     toLowerCase (condition) {
-        if (!condition || !this._value) {
+        if (!condition) {
             return this;
         }
-        const Constructor = this.constructor;
-        return new Constructor(this._value.toLowerCase());
+        if (this.isEmpty()) {
+            return this;
+        }
+        const PartConstructor = this.constructor;
+        return new PartConstructor(this._value.toLowerCase());
     }
 }

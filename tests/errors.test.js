@@ -17,5 +17,5 @@ beforeEach(() => {
 });
 
 test('Generate correct url', () => {
-    expect(router.generateUrl('index')).toBe('/hello/world');
+    expect(router.generateUri('index')).toBe('/hello/world');
 });

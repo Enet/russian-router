@@ -1,85 +1,70 @@
 import {
     joinUri,
     forEachPartName,
-    chooseTemplate,
-    mergeParams
+    chooseTemplate
 } from './utils.js';
 import RouteOptions from './RouteOptions.js';
 import RouteParams from './RouteParams.js';
 import TemplateUri from './TemplateUri.js';
+import RouterError from './RouterError.js';
 
 export default class Route {
-    constructor (routeName, rawRoute, defaultOptions={}) {
+    constructor (routeName, rawRoute, fallbackOptions={}) {
         const rawRouteParams = rawRoute.params || {};
         const rawRouteOptions = rawRoute.options || {};
         const rawRouteUri = rawRoute.uri || '';
 
         if (typeof rawRouteParams !== 'object') {
-            throw 'Route params should be presented by object! Check ' + routeName + ' route.';
+            throw new RouterError(RouterError.INVALID_INPUT_TYPE, {
+                entity: 'route\'s params',
+                type: 'object',
+                routeName
+            });
         }
         if (typeof rawRouteOptions !== 'object') {
-            throw 'Route options should be presented by object! Check ' + routeName + ' route.';
+            throw new RouterError(RouterError.INVALID_INPUT_TYPE, {
+                entity: 'route\'s options',
+                type: 'object',
+                routeName
+            });
         }
         if (typeof rawRouteUri !== 'string') {
-            throw 'Route template should be presented by string! Check ' + routeName + ' route.';
+            throw new RouterError(RouterError.INVALID_INPUT_TYPE, {
+                entity: 'route\'s URI template',
+                type: 'string',
+                routeName
+            });
         }
 
         this.name = routeName;
-        const parsedOptions = this._parsedOptions = new RouteOptions(rawRouteOptions, defaultOptions);
-        const parsedParams = this._parsedParams = new RouteParams(rawRouteParams);
-        const templateUri = this._templateUri = new TemplateUri(rawRouteUri);
+        const templateUri = new TemplateUri(rawRouteUri);
+        const parsedOptions = new RouteOptions(rawRouteOptions, fallbackOptions, routeName);
+        const parsedParams = new RouteParams(rawRouteParams);
         const parsedTemplate = {};
         forEachPartName((partName) => {
             const Template = chooseTemplate(templateUri, partName);
-            parsedTemplate[partName] = new Template(templateUri, parsedParams, parsedOptions, partName);
+            parsedTemplate[partName] = new Template(partName, templateUri, parsedOptions, parsedParams);
         });
+
+        this._templateUri = templateUri;
+        this._parsedOptions = parsedOptions;
+        this._parsedParams = parsedParams;
         this._parsedTemplate = parsedTemplate;
     }
 
     matchUri (userUri) {
         const parsedTemplate = this._parsedTemplate;
-        const protocolMatchObject = parsedTemplate.protocol.matchParsedValue(userUri);
-        if (!protocolMatchObject) {
-            return null;
+        const matchObject = {};
+        const params = {};
+        for (let p in parsedTemplate) {
+            const matchFragment = parsedTemplate[p].matchParsedValue(userUri);
+            if (!matchFragment) {
+                return null;
+            }
+            matchObject[p] = matchFragment.value;
+            Object.assign(params, matchFragment.params);
         }
-        const domainMatchObject = parsedTemplate.domain.matchParsedValue(userUri);
-        if (!domainMatchObject) {
-            return null;
-        }
-        const portMatchObject = parsedTemplate.port.matchParsedValue(userUri);
-        if (!portMatchObject) {
-            return null;
-        }
-        const pathMatchObject = parsedTemplate.path.matchParsedValue(userUri);
-        if (!pathMatchObject) {
-            return null;
-        }
-        const queryMatchObject = parsedTemplate.query.matchParsedValue(userUri);
-        if (!queryMatchObject) {
-            return null;
-        }
-        const hashMatchObject = parsedTemplate.hash.matchParsedValue(userUri);
-        if (!hashMatchObject) {
-            return null;
-        }
-
-        const matchObject = {
-            name: this.name,
-            protocol: protocolMatchObject.value,
-            domain: domainMatchObject.value,
-            port: portMatchObject.value,
-            path: pathMatchObject.value,
-            query: queryMatchObject.value,
-            hash: hashMatchObject.value,
-            params: mergeParams(
-                protocolMatchObject,
-                domainMatchObject,
-                portMatchObject,
-                pathMatchObject,
-                queryMatchObject,
-                hashMatchObject
-            )
-        };
+        matchObject.name = this.name;
         return matchObject;
     }
 
@@ -92,7 +77,8 @@ export default class Route {
 
         const rawUri = joinUri(parsedUri);
         if (this._parsedOptions.dataConsistency && !this.matchUri(rawUri)) {
-            throw 'Data is inconsistence for route ' + this.name + '!';
+            const routeName = this.name;
+            throw new RouterError(RouterError.INCONSISTENT_DATA, {routeName});
         }
         return rawUri;
     }

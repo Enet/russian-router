@@ -28,20 +28,20 @@ test('Router renders root route correctly', () => {
     select('index');
     init();
 
-    expect(router.generateUrl('index')).toBe('/');
-    expect(router.generateUrl('index', {})).toBe('/');
-    expect(router.generateUrl('index', {a: 1})).toBe('/');
+    expect(router.generateUri('index')).toBe('/');
+    expect(router.generateUri('index', {})).toBe('/');
+    expect(router.generateUri('index', {a: 1})).toBe('/');
 });
 
 test('Router option onlyRoute works correctly', () => {
     configure();
     select('priorityX', 'priorityY', 'priorityZ');
     init();
-    expect(router.matchUrl('/priority/checking').length).toBe(3);
+    expect(router.matchUri('/priority/checking').length).toBe(3);
 
     configure({onlyRoute: true});
     init();
-    expect(router.matchUrl('/priority/checking').length).toBe(1);
+    expect(router.matchUri('/priority/checking').length).toBe(1);
 });
 
 test('Router option sortMatchedRoutes works correctly', () => {
@@ -50,7 +50,7 @@ test('Router option sortMatchedRoutes works correctly', () => {
     configure();
     select('priorityD', 'priorityX', 'priorityY', 'priorityZ');
     init();
-    matchedRoutes = router.matchUrl('/priority/checking');
+    matchedRoutes = router.matchUri('/priority/checking');
     expect(matchedRoutes[0].options.priority).toBe(1);
     expect(matchedRoutes[1].options.priority).toBeUndefined();
     expect(matchedRoutes[2].options.priority).toBe(0);
@@ -58,7 +58,7 @@ test('Router option sortMatchedRoutes works correctly', () => {
 
     configure({sortMatchedRoutes: true});
     init();
-    matchedRoutes = router.matchUrl('/priority/checking');
+    matchedRoutes = router.matchUri('/priority/checking');
     expect(matchedRoutes[0].options.priority).toBe(1);
     expect(matchedRoutes[1].options.priority).toBeUndefined();
     expect(matchedRoutes[2].options.priority).toBe(0);
@@ -66,22 +66,22 @@ test('Router option sortMatchedRoutes works correctly', () => {
 
     configure({sortMatchedRoutes: false});
     init();
-    matchedRoutes = router.matchUrl('/priority/checking');
+    matchedRoutes = router.matchUri('/priority/checking');
     expect(matchedRoutes[0].options.priority).not.toBe(1);
 
     configure({sortMatchedRoutes: (matchedRoutes) => []});
     init();
-    matchedRoutes = router.matchUrl('/priority/checking');
+    matchedRoutes = router.matchUri('/priority/checking');
     expect(matchedRoutes.length).toBe(0);
 });
 
 test('Router option dataConsistency works correctly', () => {
     const getEmptyUrl = () => {
-        return router.generateUrl('dataConsistency');
+        return router.generateUri('dataConsistency');
     };
 
     const getFullUrl = () => {
-        return router.generateUrl('dataConsistency', {
+        return router.generateUri('dataConsistency', {
             protocol: 'http',
             domain: 'localhost',
             port: 8080,
@@ -113,41 +113,41 @@ test('Router option trailingSlashSensitive works correctly', () => {
     configure();
     select('hasTrailingSlash', 'noTrailingSlash');
     init();
-    matchedRoutes = router.matchUrl('/trailing/slash');
+    matchedRoutes = router.matchUri('/trailing/slash');
     expect(matchedRoutes.length).toBe(2);
-    expect(router.generateUrl('noTrailingSlash').slice(-1)[0]).not.toBe('/');
-    matchedRoutes = router.matchUrl('/trailing/slash/');
+    expect(router.generateUri('noTrailingSlash').slice(-1)[0]).not.toBe('/');
+    matchedRoutes = router.matchUri('/trailing/slash/');
     expect(matchedRoutes.length).toBe(2);
-    expect(router.generateUrl('hasTrailingSlash').slice(-1)[0]).toBe('/');
+    expect(router.generateUri('hasTrailingSlash').slice(-1)[0]).toBe('/');
 
     configure({trailingSlashSensitive: false});
     init();
-    matchedRoutes = router.matchUrl('/trailing/slash');
+    matchedRoutes = router.matchUri('/trailing/slash');
     expect(matchedRoutes.length).toBe(2);
-    expect(router.generateUrl('noTrailingSlash').slice(-1)[0]).not.toBe('/');
-    matchedRoutes = router.matchUrl('/trailing/slash/');
+    expect(router.generateUri('noTrailingSlash').slice(-1)[0]).not.toBe('/');
+    matchedRoutes = router.matchUri('/trailing/slash/');
     expect(matchedRoutes.length).toBe(2);
-    expect(router.generateUrl('hasTrailingSlash').slice(-1)[0]).toBe('/');
+    expect(router.generateUri('hasTrailingSlash').slice(-1)[0]).toBe('/');
 
     configure({trailingSlashSensitive: true});
     init();
-    matchedRoutes = router.matchUrl('/trailing/slash');
+    matchedRoutes = router.matchUri('/trailing/slash');
     expect(matchedRoutes.length).toBe(1);
     expect(matchedRoutes[0].routeName).toBe('noTrailingSlash');
-    expect(router.generateUrl('noTrailingSlash').slice(-1)[0]).not.toBe('/');
-    matchedRoutes = router.matchUrl('/trailing/slash/');
+    expect(router.generateUri('noTrailingSlash').slice(-1)[0]).not.toBe('/');
+    matchedRoutes = router.matchUri('/trailing/slash/');
     expect(matchedRoutes.length).toBe(1);
     expect(matchedRoutes[0].routeName).toBe('hasTrailingSlash');
-    expect(router.generateUrl('hasTrailingSlash').slice(-1)[0]).toBe('/');
+    expect(router.generateUri('hasTrailingSlash').slice(-1)[0]).toBe('/');
 });
 
 test('Router option caseSensitive works correctly', () => {
     const getConstUrl = () => {
-        return router.generateUrl('constRandomCase');
+        return router.generateUri('constRandomCase');
     };
 
     const getParamUrl = () => {
-        return router.generateUrl('constRandomCase', {
+        return router.generateUri('constRandomCase', {
             protocol: 'hTtP',
             domain: 'lOcAlHoSt',
             port: 8080,
@@ -163,34 +163,34 @@ test('Router option caseSensitive works correctly', () => {
     init();
     url = getConstUrl();
     expect(url).toBe(url.toLowerCase());
-    expect(router.matchUrl(url).length).toBeGreaterThan(0);
-    expect(router.matchUrl(url.toLowerCase()).length).toBeGreaterThan(0);
+    expect(router.matchUri(url).length).toBeGreaterThan(0);
+    expect(router.matchUri(url.toLowerCase()).length).toBeGreaterThan(0);
     url = getParamUrl();
     expect(url).toBe(url.toLowerCase());
-    expect(router.matchUrl(url).length).toBeGreaterThan(0);
-    expect(router.matchUrl(url.toLowerCase()).length).toBeGreaterThan(0);
+    expect(router.matchUri(url).length).toBeGreaterThan(0);
+    expect(router.matchUri(url.toLowerCase()).length).toBeGreaterThan(0);
 
     configure({caseSensitive: false});
     init();
     url = getConstUrl();
     expect(url).toBe(url.toLowerCase());
-    expect(router.matchUrl(url).length).toBeGreaterThan(0);
-    expect(router.matchUrl(url.toLowerCase()).length).toBeGreaterThan(0);
+    expect(router.matchUri(url).length).toBeGreaterThan(0);
+    expect(router.matchUri(url.toLowerCase()).length).toBeGreaterThan(0);
     url = getParamUrl();
     expect(url).toBe(url.toLowerCase());
-    expect(router.matchUrl(url).length).toBeGreaterThan(0);
-    expect(router.matchUrl(url.toLowerCase()).length).toBeGreaterThan(0);
+    expect(router.matchUri(url).length).toBeGreaterThan(0);
+    expect(router.matchUri(url.toLowerCase()).length).toBeGreaterThan(0);
 
     configure({caseSensitive: true});
     init();
     url = getConstUrl();
     expect(url).not.toBe(url.toLowerCase());
-    expect(router.matchUrl(url).length).toBeGreaterThan(0);
-    expect(router.matchUrl(url.toLowerCase()).length).toBe(0);
+    expect(router.matchUri(url).length).toBeGreaterThan(0);
+    expect(router.matchUri(url.toLowerCase()).length).toBe(0);
     url = getParamUrl();
     expect(url).not.toBe(url.toLowerCase());
-    expect(router.matchUrl(url).length).toBeGreaterThan(0);
-    expect(router.matchUrl(url.toLowerCase()).length).toBe(0);
+    expect(router.matchUri(url).length).toBeGreaterThan(0);
+    expect(router.matchUri(url.toLowerCase()).length).toBe(0);
 });
 
 test('Route option dataConsistency works correctly', () => {

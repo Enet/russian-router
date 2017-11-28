@@ -1,13 +1,14 @@
 import {
+    isEmpty,
     getRegExp,
-    getPartClass
+    getPartConstructor
 } from './utils.js';
 import DefaultTemplate from './DefaultTemplate.js';
 import MatchFragment from './MatchFragment.js';
 import QueryComponent from './QueryComponent.js';
 
 export default class ConstQueryTemplate extends DefaultTemplate {
-    constructor (templateUri, routeParams, routeOptions, partName) {
+    constructor (partName, templateUri, routeOptions, routeParams) {
         super(...arguments);
 
         const matchObject = {};
@@ -27,13 +28,13 @@ export default class ConstQueryTemplate extends DefaultTemplate {
                         .toLowerCase(!routeOptions.caseSensitive)
                         .toObject();
                     const userUriQueryValue = userUriQueryObject[queryKey];
-                    if (userUriQueryValue.toString() === queryValue.toString()) {
+                    if (!isEmpty(userUriQueryValue) && userUriQueryValue.toString() === queryValue.toString()) {
                         return new MatchFragment(userUriQueryValue.toString());
                     }
                     return null;
                 }];
                 generateObject[queryKey] = [(userParams) => {
-                    return queryValue.toString();
+                    return queryValue;
                 }];
                 continue;
             }
@@ -41,28 +42,28 @@ export default class ConstQueryTemplate extends DefaultTemplate {
             const queryParamName = queryParamMatch[1];
             const queryParamValue = routeParams.getParam(queryParamName);
 
-            const queryMatchMap = queryParamValue.match.map((matchItem) => {
+            const queryMatchFunctions = queryParamValue.match.map((matchItem) => {
                 return convertMatchItemToFunction(matchItem, routeOptions, 'queryComponent', queryParamName);
             });
-            if (!queryMatchMap.length) {
-                queryMatchMap.push((userUri) => {
+            if (!queryMatchFunctions.length) {
+                queryMatchFunctions.push((userUri) => {
                     const matchParams = {};
                     const userUriPart = new QueryComponent(userUri.getParsedUri(partName).toObject()[queryParamName]);
                     matchParams[queryParamName] = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
                     return new MatchFragment(matchParams[queryParamName], matchParams);
                 });
             }
-            matchObject[queryKey] = queryMatchMap;
+            matchObject[queryKey] = queryMatchFunctions;
 
-            const queryGenerateMap = queryParamValue.generate.map((generateItem) => {
+            const queryGenerateFunctions = queryParamValue.generate.map((generateItem) => {
                 return convertGenerateItemToFunction(generateItem, routeOptions, 'queryComponent', queryParamName);
             });
-            queryGenerateMap.push((userParams) => {
+            queryGenerateFunctions.push((userParams) => {
                 const userParam = userParams[queryParamName];
                 let parsedValue = new QueryComponent(userParam);
                 return parsedValue.toLowerCase(!routeOptions.caseSensitive);
             });
-            generateObject[queryKey] = queryGenerateMap;
+            generateObject[queryKey] = queryGenerateFunctions;
         }
 
         this._matchObject = matchObject;
@@ -89,6 +90,7 @@ export default class ConstQueryTemplate extends DefaultTemplate {
     }
 
     generateParsedValue (userParams) {
+        const partName = this._partName;
         const generateObject = this._generateObject;
         let rawValue = [];
 
@@ -101,7 +103,7 @@ export default class ConstQueryTemplate extends DefaultTemplate {
         }
 
         rawValue = rawValue.join('&');
-        const Constructor = getPartClass(this._partName);
-        return new Constructor(rawValue);
+        const PartConstructor = getPartConstructor(partName);
+        return new PartConstructor(rawValue);
     }
 }

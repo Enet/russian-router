@@ -1,6 +1,7 @@
 import RouterOptions from './RouterOptions.js';
 import Route from './Route.js';
 import UserUri from './UserUri.js';
+import RouterError from './RouterError.js';
 
 export default class RussianRouter {
     constructor (rawRoutes={}, rawOptions={}) {
@@ -15,7 +16,9 @@ export default class RussianRouter {
     generateUri (routeName, userParams={}, parsedRoutes=this._parsedRoutes) {
         const parsedRoute = parsedRoutes[routeName];
         if (!parsedRoute) {
-            throw 'Invalid route name is specified for URI generation!';
+            throw new RouterError(RouterError.INVALID_ROUTE_NAME, {
+                desiredRouteName: routeName
+            });
         }
         return parsedRoute.generateUri(userParams);
     }
@@ -43,9 +46,9 @@ export default class RussianRouter {
 
     _parseRoutes (rawRoutes) {
         const parsedRoutes = {};
-        const defaultOptions = this._parsedOptions;
+        const fallbackOptions = this._parsedOptions;
         for (let routeName in rawRoutes) {
-            parsedRoutes[routeName] = new Route(routeName, rawRoutes[routeName], defaultOptions);
+            parsedRoutes[routeName] = new Route(routeName, rawRoutes[routeName], fallbackOptions);
         }
         return parsedRoutes;
     }

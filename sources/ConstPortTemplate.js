@@ -3,6 +3,8 @@ import {
     getPortByProtocol
 } from './utils.js';
 import ConstUniversalTemplate from './ConstUniversalTemplate.js';
+import MatchFragment from './MatchFragment.js';
+import Port from './Port.js';
 
 export default class ConstPortTemplate extends ConstUniversalTemplate {
     matchParsedValue (userUri) {

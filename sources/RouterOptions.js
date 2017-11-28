@@ -1,6 +1,6 @@
-import DefaultOptions from './DefaultOptions.js';
+import Options from './Options.js';
 
-export default class RouterOptions extends DefaultOptions {
+export default class RouterOptions extends Options {
     constructor (rawOptions) {
         super(rawOptions);
 

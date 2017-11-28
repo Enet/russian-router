@@ -1,3 +1,6 @@
+import {
+    isEmpty
+} from './utils.js';
 import Part from './Part.js';
 
 export default class QueryComponent extends Part {

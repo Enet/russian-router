@@ -2,6 +2,7 @@ import {
     getDefaultPart
 } from './utils.js';
 import DefaultTemplate from './DefaultTemplate.js';
+import MatchFragment from './MatchFragment.js';
 
 export default class ConstUniversalTemplate extends DefaultTemplate {
     matchParsedValue (userUri) {

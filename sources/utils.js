@@ -23,6 +23,18 @@ import ConstHashTemplate from './ConstHashTemplate.js';
 
 
 
+export const toLowerCase = (value='') => {
+    return value.toLowerCase();
+};
+
+export const toUpperCase = (value='') => {
+    return value.toUpperCase();
+};
+
+export const toTitleCase = (value='') => {
+    return value.substr(0, 1).toUpperCase() + value.substr(1);
+};
+
 export const isEmpty = (value) => {
     return value === null || value === undefined;
 };
@@ -35,62 +47,73 @@ export const forEachPartName = (callback) => {
     partNames.forEach(callback);
 };
 
+export const getPartConstructor = (partName) => {
+    return partConstructors[partName];
+};
+
+export const getDefaultPart = (partName) => {
+    const PartConstructor = getPartConstructor(partName);
+    return new PartConstructor();
+};
+
+export const getPortByProtocol = (protocol) => {
+    protocol = (protocol + '').toLowerCase();
+    return protocolByPort[protocol] || null;
+};
+
 export const getRegExp = (regExpName) => {
     return regExps[regExpName];
 };
-
-export const mergeParams = (...matchFragments) => {
-    const params = {};
-    for (let matchFragment of matchFragments) {
-        Object.assign(params, matchFragment.params);
-    }
-    return params;
-}
 
 export const chooseTemplate = (templateUri, partName) => {
     let templateType;
     const rawTemplate = templateUri.getSplittedUri(partName);
 
     if (rawTemplate) {
-        const paramMatch = rawTemplate.match(getRegExp('param'));
-        templateType = paramMatch ? 'Param' : 'Const';
+        const paramTest = getRegExp('param').test(rawTemplate);
+        templateType = paramTest ? 'Param' : 'Const';
     } else {
         templateType = 'Const';
     }
 
-    const templateName = templateType + partName[0].toUpperCase() + partName.substr(1) + 'Template';
+    const templateName = templateType + toTitleCase(partName) + 'Template';
     return templates[templateName];
 };
 
-export const splitUri = (rawUri, regExp, entityName) => {
-    const match = rawUri.match(regExp);
-
-    if (!match) {
-        throw 'Invalid ' + entityName + ' cannot be splitted!';
+export const parseSplittedUriPart = (rawUriPart, regExp) => {
+    if (!rawUriPart) {
+        return null;
     }
-    if (match[3] && match[5][0] !== '/' && !getRegExp('param').test(match[5])) {
-        if (match[5]) {
-            throw 'Path should be absolute when domain is specified!';
+    if (regExp) {
+        rawUriPart = rawUriPart.replace(regExp, '');
+    }
+    return rawUriPart || null;
+};
+
+export const splitUri = (rawUri, regExp, entityName) => {
+    const uriMatch = rawUri.match(regExp);
+
+    if (!uriMatch) {
+        const uriStructureError = new Error('URI has invalid structure and cannot be splitted!');
+        uriStructureError.code = 'INVALID_URI_STRUCTURE';
+        throw uriStructureError;
+    }
+    if (uriMatch[3] && uriMatch[5][0] !== '/' && !getRegExp('param').test(uriMatch[5])) {
+        if (uriMatch[5]) {
+            const pathStructureError = new Error('Path must be absolute when domain is specified!');
+            pathStructureError.code = 'INVALID_PATH_STRUCTURE';
+            throw pathStructureError;
         } else {
-            match[5] = '/';
+            uriMatch[5] = '/';
         }
     }
 
-    const protocol = match[2] ? match[2].replace(/:$/, '') : null;
-    const domain = match[3] || null;
-    const port = match[4] ? match[4].replace(/^:/, '') : null;
-    const path = match[5] || null;
-    const query = match[6] ? match[6].replace(/^\?/, '') : null;
-    const hash = match[7] ? match[7].replace(/^#/, '') : null;
-
-    return {
-        protocol,
-        domain,
-        port,
-        path,
-        query,
-        hash
-    };
+    const splittedUri = {};
+    forEachPartName((partName, p) => {
+        const regExp = splittedUriPartRegExps[partName];
+        splittedUri[partName] = parseSplittedUriPart(uriMatch[p + 1], regExp);
+    });
+    return splittedUri;
 };
 
 export const joinUri = (parsedUri) => {
@@ -104,60 +127,23 @@ export const joinUri = (parsedUri) => {
     } = parsedUri;
 
     let rawUri = '';
-    if (!parsedUri.protocol.isEmpty()) {
-        rawUri += parsedUri.protocol + ':';
+    if (!protocol.isEmpty()) {
+        rawUri += protocol + ':';
     }
-    if (!parsedUri.protocol.isEmpty() || !parsedUri.domain.isEmpty() || !parsedUri.port.isEmpty()) {
-        rawUri += '//' + parsedUri.domain;
-        if (!parsedUri.port.isEmpty()) {
-            rawUri += ':' + parsedUri.port;
+    if (!protocol.isEmpty() || !domain.isEmpty() || !port.isEmpty()) {
+        rawUri += '//' + domain;
+        if (!port.isEmpty()) {
+            rawUri += ':' + port;
         }
     }
-    rawUri += parsedUri.path;
-    if (!parsedUri.query.isEmpty()) {
-        rawUri += '?' + parsedUri.query;
+    rawUri += path;
+    if (!query.isEmpty()) {
+        rawUri += '?' + query;
     }
-    if (!parsedUri.hash.isEmpty()) {
-        rawUri += '#' + parsedUri.hash;
+    if (!hash.isEmpty()) {
+        rawUri += '#' + hash;
     }
     return rawUri;
-};
-
-export const getPortByProtocol = (protocol) => {
-    protocol = (protocol + '').toLowerCase();
-    return protocolToPort[protocol] || null;
-};
-
-export const getDefaultProtocol = () => {
-    return new Protocol();
-};
-
-export const getDefaultDomain = () => {
-    return new Domain();
-};
-
-export const getDefaultPort = () => {
-    return new Port();
-};
-
-export const getDefaultPath = () => {
-    return new Path();
-};
-
-export const getDefaultQuery = () => {
-    return new Query();
-};
-
-export const getDefaultHash = () => {
-    return new Hash();
-};
-
-export const getDefaultPart = (partName) => {
-    return defaultParts[partName]();
-};
-
-export const getPartClass = (partName) => {
-    return partClasses[partName];
 };
 
 export const convertMatchItemToFunction = (matchItem, routeOptions, partName, paramName, ...restOptions) => {
@@ -195,7 +181,8 @@ export const convertMatchItemToFunction = (matchItem, routeOptions, partName, pa
             return new MatchFragment(rawValue, {[paramName]: rawValue});
         };
     } else {
-        const templateUriPart = new partClasses[partName](matchItem).toLowerCase(!routeOptions.caseSensitive);
+        const PartConstructor = getPartConstructor(partName);
+        const templateUriPart = new Constructor(matchItem).toLowerCase(!routeOptions.caseSensitive);
         return (userUri) => {
             userUri = substituteUserUri(userUri);
             const userUriPart = userUri.getParsedUri(partName).toLowerCase(!routeOptions.caseSensitive);
@@ -212,12 +199,14 @@ export const convertGenerateItemToFunction = (generateItem, routeOptions, partNa
     if (typeof generateItem === 'function') {
         return (userParams) => {
             const rawValue = generateItem(userParams, routeOptions, partName, paramName);
-            const parsedValue = new partClasses[partName](rawValue);
+            const PartConstructor = getPartConstructor(partName);
+            const parsedValue = new Constructor(rawValue);
             return parsedValue.toLowerCase(!routeOptions.caseSensitive);
         };
     } else {
         return (userParams) => {
-            const parsedValue = new partClasses[partName](generateItem);
+            const PartConstructor = getPartConstructor(partName);
+            const parsedValue = new Constructor(generateItem);
             return parsedValue.toLowerCase(!routeOptions.caseSensitive);
         };
     }
@@ -249,26 +238,18 @@ const partNames = [
     'hash'
 ];
 
-const defaultParts = {
-    protocol: getDefaultProtocol,
-    domain: getDefaultDomain,
-    port: getDefaultPort,
-    path: getDefaultPath,
-    query: getDefaultQuery,
-    hash: getDefaultHash
-};
-
-const partClasses = {
+const partConstructors = {
     protocol: Protocol,
     domain: Domain,
     port: Port,
     path: Path,
     query: Query,
     hash: Hash,
-    queryComponent: QueryComponent
+    queryComponent: QueryComponent,
+    pathComponent: PathComponent
 };
 
-const protocolToPort = {
+const protocolByPort = {
     ftp: 21,
     ssh: 22,
     telnet: 23,
@@ -290,4 +271,13 @@ const regExps = {
     uri: /^(([-.+A-z0-9]+:)?\/\/([A-z0-9.]+)(:[0-9]+)?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
     template: /^(((?:[-.+A-z0-9]+|{[A-z0-9]+}):)?\/\/((?:[A-z0-9.]+|{[A-z0-9]+}))(:(?:[0-9]+|{[A-z0-9]+}))?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
     param: /^{([^*}]*)(\*)?}$/
+};
+
+const splittedUriPartRegExps = {
+    protocol: /:$/,
+    domain: null,
+    port: /^:/,
+    path: null,
+    query: /^\?/,
+    hash: /^#/
 };
