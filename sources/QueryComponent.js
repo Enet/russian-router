@@ -1,16 +1,5 @@
-import {
-    isEmpty
-} from './utils.js';
-import Part from './Part.js';
+import PathComponent from './PathComponent.js';
 
-export default class QueryComponent extends Part {
-    constructor (rawValue) {
-        rawValue = decodeURIComponent(rawValue);
-        super(rawValue);
-        this._value = isEmpty(rawValue) ? null : this._value || '';
-    }
+export default class QueryComponent extends PathComponent {
 
-    toString () {
-        return encodeURIComponent(super.toString());
-    }
 }

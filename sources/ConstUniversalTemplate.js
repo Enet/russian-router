@@ -5,35 +5,28 @@ import DefaultTemplate from './DefaultTemplate.js';
 import MatchFragment from './MatchFragment.js';
 
 export default class ConstUniversalTemplate extends DefaultTemplate {
-    matchParsedValue (userUri) {
-        const templateUri = this._templateUri;
-        const routeOptions = this._routeOptions;
-        const partName = this._partName;
+    _getMatchFunctions (partName, templateUri, routeOptions) {
+        return [(userUri) => {
+            let templateUriPart = templateUri.getParsedUri(partName);
+            if (templateUriPart.isEmpty()) {
+                templateUriPart = getDefaultPart(partName);
+            }
+            const templateUriPartString = templateUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
 
-        let userUriPart = userUri.getParsedUri(partName);
-        let userUriPartString = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
-        let templateUriPart = templateUri.getParsedUri(partName);
-        if (templateUriPart.isEmpty()) {
-            templateUriPart = getDefaultPart(partName);
-        }
-        if (templateUriPart.isEmpty()) {
-            return new MatchFragment(userUriPartString);
-        }
+            let userUriPart = userUri.getParsedUri(partName);
+            let userUriPartString = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
+            if (templateUriPart.isEmpty() || userUriPartString === templateUriPartString) {
+                return new MatchFragment(userUriPart.toString());
+            }
 
-        let templateUriPartString = templateUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
-        if (userUriPartString === templateUriPartString) {
-            return new MatchFragment(userUriPartString);
-        }
-
-        return null;
+            return null;
+        }];
     }
 
-    generateParsedValue (userParams) {
-        const templateUri = this._templateUri;
-        const routeOptions = this._routeOptions;
-        const partName = this._partName;
-
-        let parsedValue = templateUri.getParsedUri(partName);
-        return parsedValue.toLowerCase(!routeOptions.caseSensitive);
+    _getGenerateFunctions (partName, templateUri, routeOptions) {
+        return [(userParams) => {
+            const parsedValue = templateUri.getParsedUri(partName);
+            return parsedValue;
+        }];
     }
 }

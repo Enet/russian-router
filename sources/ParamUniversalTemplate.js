@@ -1,12 +1,11 @@
 import {
-    convertMatchItemToFunction,
-    convertGenerateItemToFunction,
-    getPartConstructor,
-    getDefaultPart,
+    convertMatchItemsToFunctions,
+    convertGenerateItemsToFunctions,
     getRegExp
 } from './utils.js';
 import DefaultTemplate from './DefaultTemplate.js';
-import MatchFragment from './MatchFragment.js';
+
+const getUserUriPart = (userUri, partName) => userUri.getParsedUri(partName);
 
 export default class ParamUniversalTemplate extends DefaultTemplate {
     constructor (partName, templateUri, routeOptions, routeParams) {
@@ -14,32 +13,30 @@ export default class ParamUniversalTemplate extends DefaultTemplate {
 
         const rawTemplate = templateUri.getSplittedUri(partName);
         const paramMatch = rawTemplate.match(getRegExp('param'));
-        const paramName = paramMatch[1];
-        const paramValue = routeParams.getParam(paramName);
+        this._paramName = paramMatch[1];
+        this._paramValue = routeParams.getParam(this._paramName);
+    }
 
-        this._matchFunctions = paramValue.match.map((matchItem) => {
-            return convertMatchItemToFunction(matchItem, routeOptions, partName, paramName);
-        });
-        if (!this._matchFunctions.length) {
-            this._matchFunctions.push((userUri) => {
-                const matchParams = {};
-                const userUriPart = userUri.getParsedUri(partName);
-                matchParams[paramName] = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
-                return new MatchFragment(matchParams[paramName], matchParams);
-            });
-        }
+    _getMatchFunctions (partName, templateUri, routeOptions) {
+        const paramName = this._paramName;
+        const paramValue = this._paramValue;
 
-        this._generateFunctions = paramValue.generate.map((generateItem) => {
-            return convertGenerateItemToFunction(generateItem, routeOptions, partName, paramName);
+        return convertMatchItemsToFunctions(paramValue.match, {
+            partName,
+            paramName,
+            routeOptions,
+            getUserUriPart
         });
-        this._generateFunctions.push((userParams) => {
-            const userParam = userParams[paramName];
-            const PartConstructor = getPartConstructor(partName);
-            let parsedValue = new PartConstructor(userParam);
-            if (parsedValue.isEmpty()) {
-                parsedValue = getDefaultPart(partName);
-            }
-            return parsedValue.toLowerCase(!routeOptions.caseSensitive);
-        });
+    }
+
+    _getGenerateFunctions (partName, templateUri, routeOptions) {
+        const paramName = this._paramName;
+        const paramValue = this._paramValue;
+
+        return convertGenerateItemsToFunctions(paramValue.generate, {
+            partName,
+            paramName,
+            routeOptions
+        })
     }
 }

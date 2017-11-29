@@ -45,13 +45,7 @@ export default class Query extends Part {
         return this._value.components;
     }
 
-    toLowerCase (condition) {
-        if (!condition) {
-            return this;
-        }
-        if (this.isEmpty()) {
-            return this;
-        }
-        return new Query(this._value.rawQuery.toLowerCase());
+    toLowerCase () {
+        return this;
     }
 }

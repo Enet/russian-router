@@ -7,6 +7,7 @@ import Hash from './Hash.js';
 import PathComponent from './PathComponent.js';
 import QueryComponent from './QueryComponent.js';
 import MatchFragment from './MatchFragment.js';
+import RouterError from './RouterError.js';
 
 import ParamProtocolTemplate from './ParamProtocolTemplate.js';
 import ParamDomainTemplate from './ParamDomainTemplate.js';
@@ -43,6 +44,13 @@ export const isMatchGenerate = (value) => {
     return value && typeof value === 'object' && (value.match || value.generate);
 };
 
+export const isMatchFragment = (value) => {
+    if (value === null) {
+        return true;
+    }
+    return value && value.hasOwnProperty('value') && value.hasOwnProperty('params');
+};
+
 export const forEachPartName = (callback) => {
     partNames.forEach(callback);
 };
@@ -65,6 +73,36 @@ export const getRegExp = (regExpName) => {
     return regExps[regExpName];
 };
 
+export const getPortByParsedUri = (parsedUri) => {
+    const parsedPort = parsedUri.port;
+    if (parsedPort.isEmpty()) {
+        if (parsedUri.domain.isEmpty()) {
+            const defaultPort = getDefaultPart('port');
+            if (defaultPort.isEmpty()) {
+                const defaultProtocol = getDefaultPart('protocol');
+                const portByDefaultProtocol = getPortByProtocol(defaultProtocol.toLowerCase(true).toString());
+                if (portByDefaultProtocol.isEmpty()) {
+                    return defaultPort;
+                } else {
+                    return portByDefaultProtocol;
+                }
+            } else {
+                return defaultPort;
+            }
+        } else {
+            const currentProtocol = parsedUri.protocol.isEmpty() ? getDefaultPart('protocol') : parsedUri.protocol;
+            const portByCurrentProtocol = getPortByProtocol(currentProtocol.toLowerCase(true).toString());
+            if (portByCurrentProtocol.isEmpty()) {
+                return parsedPort;
+            } else {
+                return portByCurrentProtocol;
+            }
+        }
+    } else {
+        return parsedPort;
+    }
+};
+
 export const chooseTemplate = (templateUri, partName) => {
     let templateType;
     const rawTemplate = templateUri.getSplittedUri(partName);
@@ -77,7 +115,7 @@ export const chooseTemplate = (templateUri, partName) => {
     }
 
     const templateName = templateType + toTitleCase(partName) + 'Template';
-    return templates[templateName];
+    return partTemplates[templateName];
 };
 
 export const parseSplittedUriPart = (rawUriPart, regExp) => {
@@ -146,25 +184,12 @@ export const joinUri = (parsedUri) => {
     return rawUri;
 };
 
-export const convertMatchItemToFunction = (matchItem, routeOptions, partName, paramName, ...restOptions) => {
-    let substituteUserUri;
-    if (partName === 'queryComponent' || partName === 'pathComponent') {
-        substituteUserUri = (userUri) => ({
-            getParsedUri: () => new QueryComponent(userUri.getParsedUri('query').toObject()[paramName])
-        });
-    } else if (partName === 'pathComponent') {
-        substituteUserUri = (userUri) => ({
-            getParsedUri: () => new PathComponent(userUri.getParsedUri('path').toArray()[restOptions[0]])
-        });
-    } else {
-        substituteUserUri = (userUri) => userUri;
-    }
-
+export const getMatchFunctionByItem = (matchItem, {partName, paramName, routeOptions, getUserUriPart}) => {
     if (typeof matchItem === 'function') {
         return (userUri) => {
-            const matchFragment = matchItem(userUri, routeOptions, partName, paramName);
-            if (matchFragment !== null && matchFragment instanceof MatchFragment === false) {
-                throw 'Function to match route param must return either null or instance of MatchFragment!';
+            const matchFragment = matchItem(userUri, partName, paramName, routeOptions);
+            if (!isMatchFragment(matchFragment)) {
+                throw new RouterError(RouterError.MATCH_FRAGMENT_EXPECTED);
             }
             return matchFragment;
         };
@@ -173,8 +198,8 @@ export const convertMatchItemToFunction = (matchItem, routeOptions, partName, pa
             matchItem = new RegExp(matchItem.source, matchItem.flags + 'i');
         }
         return (userUri) => {
-            userUri = substituteUserUri(userUri);
-            const rawValue = userUri.getParsedUri(partName).toLowerCase(!routeOptions.caseSensitive).toString();
+            const userUriPart = getUserUriPart(userUri, partName);
+            const rawValue = userUriPart.toString();
             if (!matchItem.test(rawValue)) {
                 return null;
             }
@@ -182,39 +207,72 @@ export const convertMatchItemToFunction = (matchItem, routeOptions, partName, pa
         };
     } else {
         const PartConstructor = getPartConstructor(partName);
-        const templateUriPart = new Constructor(matchItem).toLowerCase(!routeOptions.caseSensitive);
+        const templateUriPart = new PartConstructor(matchItem);
+        const templateUriPartString = templateUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
         return (userUri) => {
-            userUri = substituteUserUri(userUri);
-            const userUriPart = userUri.getParsedUri(partName).toLowerCase(!routeOptions.caseSensitive);
-            const userUriPartString = userUriPart.toString();
-            if (userUriPartString === templateUriPart.toString()) {
-                return new MatchFragment(userUriPartString, {[paramName]: userUriPartString});
+            const userUriPart = getUserUriPart(userUri, partName);
+            const userUriPartString = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
+            if (userUriPartString === templateUriPartString) {
+                const rawValue = userUriPart.toString();
+                return new MatchFragment(rawValue, {[paramName]: rawValue});
             }
             return null;
         };
     }
 };
 
-export const convertGenerateItemToFunction = (generateItem, routeOptions, partName, paramName) => {
-    if (typeof generateItem === 'function') {
-        return (userParams) => {
-            const rawValue = generateItem(userParams, routeOptions, partName, paramName);
-            const PartConstructor = getPartConstructor(partName);
-            const parsedValue = new Constructor(rawValue);
-            return parsedValue.toLowerCase(!routeOptions.caseSensitive);
-        };
-    } else {
-        return (userParams) => {
-            const PartConstructor = getPartConstructor(partName);
-            const parsedValue = new Constructor(generateItem);
-            return parsedValue.toLowerCase(!routeOptions.caseSensitive);
-        };
+export const getFallbackMatchFunction = ({partName, paramName, routeOptions, getUserUriPart}) => {
+    return (userUri) => {
+        const matchParams = {};
+        const userUriPart = getUserUriPart(userUri, partName);
+        matchParams[paramName] = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
+        return new MatchFragment(matchParams[paramName], matchParams);
+    };
+};
+
+export const convertMatchItemsToFunctions = (matchItems, converterOptions) => {
+    const matchFunctions = matchItems.map((matchItem) => {
+        return getMatchFunctionByItem(matchItem, converterOptions);
+    });
+    if (!matchFunctions.length) {
+        matchFunctions.push(getFallbackMatchFunction(converterOptions));
     }
+    return matchFunctions;
+};
+
+export const getGenerateFunctionByItem = (generateItem, {partName, paramName, routeOptions}) => {
+    const PartConstructor = getPartConstructor(partName);
+    return (userParams) => {
+        const rawValue = typeof generateItem === 'function' ?
+            generateItem(userParams, partName, paramName, routeOptions) :
+            generateItem;
+        const parsedValue = new PartConstructor(rawValue);
+        return parsedValue;
+    };
+};
+
+export const getFallbackGenerateFunction = ({partName, paramName, routeOptions}) => {
+    const PartConstructor = getPartConstructor(partName);
+    return (userParams) => {
+        const userParam = userParams[paramName];
+        let parsedValue = new PartConstructor(userParam);
+        if (parsedValue.isEmpty()) {
+            parsedValue = getDefaultPart(partName);
+        }
+        return parsedValue;
+    };
+};
+
+export const convertGenerateItemsToFunctions = (generateItems, converterOptions) => {
+    const generateFunctions = generateItems.map((generateItem) => {
+        return getGenerateFunctionByItem(generateItem, converterOptions);
+    });
+    generateFunctions.push(getFallbackGenerateFunction(converterOptions));
 };
 
 
 
-const templates = {
+const partTemplates = {
     ParamProtocolTemplate,
     ParamDomainTemplate,
     ParamPortTemplate,

@@ -1,9 +1,8 @@
 import {
-    isEmpty,
     getRegExp,
     getPartConstructor,
-    convertMatchItemToFunction,
-    convertGenerateItemToFunction
+    convertMatchItemsToFunctions,
+    convertGenerateItemsToFunctions
 } from './utils.js';
 import DefaultTemplate from './DefaultTemplate.js';
 import MatchFragment from './MatchFragment.js';
@@ -13,62 +12,35 @@ export default class ConstPathTemplate extends DefaultTemplate {
     constructor (partName, templateUri, routeOptions, routeParams) {
         super(...arguments);
 
-        const templateUriPath = templateUri.getParsedUri(partName);
-        const templateUriPathComponents = templateUriPath.toArray();
         const matchArray = [];
         const generateArray = [];
+        const templateUriPath = templateUri.getParsedUri(partName);
+        const templateUriPathComponents = templateUriPath.toArray().map((value) => new PathComponent(value));
         const optionalPathParamNames = [];
 
         for (let t = 0, tl = templateUriPathComponents.length; t < tl; t++) {
-            let templateUriPathComponent = new PathComponent(templateUriPathComponents[t]).toLowerCase(!routeOptions.caseSensitive);
+            let matchFunctions = [];
+            let generateFunctions = [];
 
-            const pathParamMatch = templateUriPathComponents[t].match(getRegExp('param'));
-            if (!pathParamMatch) {
-                matchArray[t] = [(userUri) => {
-                    const userUriPathComponents = userUri.getParsedUri(partName).toArray();
-                    const userUriPathComponent = new PathComponent(userUriPathComponents[t]).toLowerCase(!routeOptions.caseSensitive);
-                    if (userUriPathComponent.toString() === templateUriPathComponent.toString()) {
-                        return new MatchFragment(userUriPathComponent.toString());
-                    }
-                    return null;
-                }];
-                generateArray[t] = [(userParams) => {
-                    return templateUriPathComponent.toString();
-                }];
-                continue;
+            const templateUriPathComponent = templateUriPathComponents[t];
+            const pathParamMatch = templateUriPathComponent.toString().match(getRegExp('param'));
+            if (pathParamMatch) {
+                const pathParamName = pathParamMatch[1];
+                const pathParamValue = routeParams.getParam(pathParamName);
+                matchFunctions = this._getParamMatchFunctions(pathParamName, pathParamValue, routeOptions, t);
+                generateFunctions = this._getParamGenerateFunctions(pathParamName, pathParamValue, routeOptions, t);
+                const isPathParamOptional = pathParamMatch[2] === '*';
+                if (isPathParamOptional) {
+                    optionalPathParamNames.push(pathParamName);
+                    matchFunctions.optionalIndex = optionalPathParamNames.length;
+                }
+            } else {
+                matchFunctions = this._getConstMatchFunctions(templateUriPathComponent, routeOptions, t);
+                generateFunctions = this._getConstGenerateFunctions(templateUriPathComponent, routeOptions, t);
             }
 
-            const pathParamName = pathParamMatch[1];
-            const pathParamValue = routeParams.getParam(pathParamName);
-
-            const pathMatchFunctions = pathParamValue.match.map((matchItem) => {
-                return convertMatchItemToFunction(matchItem, routeOptions, 'pathComponent', pathParamName, t);
-            });
-            if (!pathMatchFunctions.length) {
-                pathMatchFunctions.push((userUri) => {
-                    const matchParams = {};
-                    const userUriPart = new PathComponent(userUri.getParsedUri(partName).toObject()[t]);
-                    matchParams[pathParamName] = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
-                    return new MatchFragment(matchParams[pathParamName], matchParams);
-                });
-            }
-            matchArray[t] = pathMatchFunctions;
-
-            const isPathParamOptional = pathParamMatch[2] === '*';
-            if (isPathParamOptional) {
-                optionalPathParamNames.push(pathParamName);
-                matchArray[t].optionalIndex = optionalPathParamNames.length;
-            }
-
-            const pathGenerateFunctions = pathParamValue.generate.map((generateItem) => {
-                return convertGenerateItemToFunction(generateItem, routeOptions, 'pathComponent', pathParamName);
-            });
-            pathGenerateFunctions.push((userParams) => {
-                const userParam = userParams[pathParamName];
-                let parsedValue = new PathComponent(userParam);
-                return parsedValue.toLowerCase(!routeOptions.caseSensitive);
-            });
-            generateArray[t] = pathGenerateFunctions;
+            matchArray[t] = matchFunctions;
+            generateArray[t] = generateFunctions;
         }
 
         this._matchArray = matchArray;
@@ -79,39 +51,40 @@ export default class ConstPathTemplate extends DefaultTemplate {
     matchParsedValue (userUri) {
         const partName = this._partName;
         const routeOptions = this._routeOptions;
-        const userUriPath = userUri.getParsedUri(partName).toLowerCase(!routeOptions.caseSensitive);
-        const templateUriPath = this._templateUri.getParsedUri(partName);
-        const userUriPathComponents = userUriPath.toArray();
-        const templateUriPathComponents = templateUriPath.toArray();
         const optionalPathParamNames = this._optionalPathParamNames;
+        const userUriPath = userUri.getParsedUri(partName);
+        const templateUriPath = this._templateUri.getParsedUri(partName);
 
         if (routeOptions.trailingSlashSensitive && userUriPath.hasTrailingSlash() !== templateUriPath.hasTrailingSlash()) {
             return null;
         }
-        let pOffset = userUriPathComponents.length - templateUriPathComponents.length;
-        if (pOffset + optionalPathParamNames.length < 0) {
+
+        const userUriPathComponentCount = userUriPath.toArray().length;
+        const templateUriPathComponentCount = templateUriPath.toArray().length;
+        let pathComponentDifference = userUriPathComponentCount - templateUriPathComponentCount;
+        if (pathComponentDifference + optionalPathParamNames.length < 0) {
             return null;
         }
-        if (templateUriPath.isAbsolute() && pOffset > 0) {
+        if (templateUriPath.isAbsolute() && pathComponentDifference > 0) {
             return null;
         }
 
         const matchArray = this._matchArray;
-        const value = userUri.getSplittedUri(partName).toString();
+        const value = userUri.getParsedUri(partName).toString();
         const params = {};
 
         optionalLoop:
         for (let o = 0, ol = Math.pow(2, optionalPathParamNames.length); o < ol; o++) {
-            let oOffset = 0;
+            let optionalOffset = 0;
             componentLoop:
             for (let m = 0, ml = matchArray.length; m < ml; m++) {
-                const mIndex = templateUriPath.isAbsolute() ? m : ml - m - 1;
-                const matchFunctions = matchArray[mIndex];
+                const matchIndex = templateUriPath.isAbsolute() ? m : ml - m - 1;
+                const matchFunctions = matchArray[matchIndex];
                 if (matchFunctions.optionalIndex && o / Math.pow(2, matchFunctions.optionalIndex) % 1 >= 0.5) {
-                    oOffset--;
+                    optionalOffset--;
                     continue componentLoop;
                 }
-                const tIndex = templateUriPath.isAbsolute() ? m + oOffset : userUriPathComponents.length - m - 1 - oOffset;
+                const templateIndex = templateUriPath.isAbsolute() ? m + optionalOffset : userUriPathComponentCount - m - 1 - optionalOffset;
                 const pathMatchFragment = super.matchParsedValue(userUri, matchFunctions);
                 if (!pathMatchFragment) {
                     continue optionalLoop;
@@ -130,11 +103,11 @@ export default class ConstPathTemplate extends DefaultTemplate {
         let rawValue = [];
 
         for (let generateFunctions of generateArray) {
-            const pathParsedValue = super.generateParsedValue(userParams, generateFunctions);
-            if (isEmpty(pathParsedValue) || pathParsedValue.isEmpty()) {
+            const pathComponent = super.generateParsedValue(userParams, generateFunctions);
+            if (pathComponent.isEmpty()) {
                 continue;
             }
-            rawValue.push(pathParsedValue.toString());
+            rawValue.push(encodeURIComponent(pathComponent.toString()));
         }
 
         rawValue = rawValue.join('/');
@@ -146,6 +119,45 @@ export default class ConstPathTemplate extends DefaultTemplate {
         }
 
         const PartConstructor = getPartConstructor(partName);
-        return new PartConstructor(rawValue);
+        const parsedValue = new PartConstructor(rawValue);
+        return parsedValue;
+    }
+
+    _getConstMatchFunctions (templateUriPathComponent, routeOptions, pathComponentIndex) {
+        const partName = this._partName;
+        const templateUriPathComponentString = templateUriPathComponent.toLowerCase(!routeOptions.caseSensitive).toString();
+        return [(userUri) => {
+            const userUriRawPathComponents = userUri.getParsedUri(partName).toArray();
+            const userUriPathComponent = new PathComponent(userUriRawPathComponents[pathComponentIndex]);
+            const userUriPathComponentString = userUriPathComponent.toLowerCase(!routeOptions.caseSensitive).toString();
+            if (userUriPathComponentString === templateUriPathComponentString) {
+                return new MatchFragment(userUriPathComponentString);
+            }
+            return null;
+        }];
+    }
+
+    _getConstGenerateFunctions (templateUriPathComponent) {
+        return [(userParams) => templateUriPathComponent];
+    }
+
+    _getParamMatchFunctions (paramName, paramValue, routeOptions, pathComponentIndex) {
+        const getUserUriPart = (userUri, partName) => {
+            return new PathComponent(userUri.getParsedUri(partName).toArray()[pathComponentIndex]);
+        };
+        return convertMatchItemsToFunctions(paramValue.match, {
+            partName: 'pathComponent',
+            paramName,
+            routeOptions,
+            getUserUriPart
+        });
+    }
+
+    _getParamGenerateFunctions (paramName, paramValue, routeOptions) {
+        return convertGenerateItemsToFunctions(paramValue.generate, {
+            partName: 'pathComponent',
+            paramName,
+            routeOptions
+        });
     }
 }

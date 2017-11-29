@@ -4,6 +4,9 @@ export default class DefaultTemplate {
         this._templateUri = templateUri;
         this._routeOptions = routeOptions;
         this._routeParams = routeParams;
+
+        this._matchFunctions = this._getMatchFunctions(...arguments);
+        this._generateFunctions = this._getGenerateFunctions(...arguments);
     }
 
     matchParsedValue (userUri, matchFunctions=this._matchFunctions) {
@@ -29,5 +32,13 @@ export default class DefaultTemplate {
             }
         }
         return parsedValue;
+    }
+
+    _getMatchFunctions (partName, templateUri, routeOptions, routeParams) {
+        return [];
+    }
+
+    _getGenerateFunctions (partName, templateUri, routeOptions, routeParams) {
+        return [];
     }
 }
