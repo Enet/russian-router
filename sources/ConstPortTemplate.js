@@ -1,5 +1,5 @@
 import {
-    getPortByParsedUri
+    getPortByUri
 } from './utils.js';
 import ConstUniversalTemplate from './ConstUniversalTemplate.js';
 import MatchFragment from './MatchFragment.js';
@@ -7,7 +7,7 @@ import MatchFragment from './MatchFragment.js';
 export default class ConstPortTemplate extends ConstUniversalTemplate {
     _getMatchFunctions (partName, templateUri) {
         return [(userUri) => {
-            const templateUriPort = getPortByParsedUri(templateUri);
+            const templateUriPort = getPortByUri(templateUri);
             const templateUriPortString = templateUriPort.toString();
             const userUriPort = userUri.getParsedUri(partName);
             const userUriPortString = userUriPort.toString();
@@ -20,7 +20,7 @@ export default class ConstPortTemplate extends ConstUniversalTemplate {
 
     _getGenerateFunctions (partName, templateUri) {
         return [(userParams) => {
-            const parsedValue = getPortByParsedUri(templateUri);
+            const parsedValue = getPortByUri(templateUri);
             return parsedValue;
         }];
     }

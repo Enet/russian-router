@@ -94,8 +94,8 @@ export default class ConstQueryTemplate extends DefaultTemplate {
             if (userUriQueryCoupleParsedValue.isEmpty()) {
                 return null;
             }
-            userUriQueryCoupleString = userUriQueryCoupleParsedValue.toLowerCase(!routeOptions.caseSensitive).toString();
-            queryCoupleString = queryCoupleParsedValue.toLowerCase(!routeOptions.caseSensitive).toString();
+            const userUriQueryCoupleString = userUriQueryCoupleParsedValue.toLowerCase(!routeOptions.caseSensitive).toString();
+            const queryCoupleString = queryCoupleParsedValue.toLowerCase(!routeOptions.caseSensitive).toString();
             if (userUriQueryCoupleString !== queryCoupleString) {
                 return null;
             }
@@ -109,7 +109,8 @@ export default class ConstQueryTemplate extends DefaultTemplate {
 
     _getParamMatchFunctions (paramName, paramValue, routeOptions) {
         const getUserUriPart = (userUri, partName) => {
-            return new QueryComponent(userUri.getParsedUri(partName).toObject()[paramName]);
+            const userUriQuery = userUri.getParsedUri('query');
+            return new QueryComponent(userUriQuery.toObject()[paramName]);
         };
         return convertMatchItemsToFunctions(
             paramValue.match,

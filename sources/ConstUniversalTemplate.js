@@ -5,6 +5,11 @@ import DefaultTemplate from './DefaultTemplate.js';
 import MatchFragment from './MatchFragment.js';
 
 export default class ConstUniversalTemplate extends DefaultTemplate {
+    constructor () {
+        super(...arguments);
+        this._initMatchGenerateFunctions(...arguments);
+    }
+
     _getMatchFunctions (partName, templateUri, routeOptions) {
         return [(userUri) => {
             let templateUriPart = templateUri.getParsedUri(partName);

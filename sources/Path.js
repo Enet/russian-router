@@ -2,7 +2,9 @@ import Part from './Part.js';
 
 export default class Path extends Part {
     constructor (rawPath) {
-        rawPath = super(rawPath);
+        super(rawPath);
+        rawPath = this._value;
+
         let isAbsolute = false;
         let hasTrailingSlash = false;
         let components = [];
@@ -10,11 +12,25 @@ export default class Path extends Part {
         if (rawPath) {
             isAbsolute = rawPath[0] === '/';
             hasTrailingSlash = rawPath.length > 1 && rawPath[rawPath.length - 1] === '/';
-            components = rawPath
-                .split('/')
-                .slice(+isAbsolute, -hasTrailingSlash)
-                .map(decodeURIComponent);
+            components = rawPath.split('/').slice(+isAbsolute, -hasTrailingSlash);
         }
+
+        let depthLevel = 0;
+        components = components
+            .reverse()
+            .filter((component) => component !== '.')
+            .filter((component) => {
+                if (component === '..') {
+                    depthLevel++;
+                }
+                if (depthLevel === 0) {
+                    return true;
+                }
+                depthLevel = Math.max(depthLevel - 1, 0);
+                return false;
+            })
+            .reverse()
+            .map(decodeURIComponent);
 
         this._value = {
             isAbsolute,
@@ -52,13 +68,7 @@ export default class Path extends Part {
         return this._value.components;
     }
 
-    toLowerCase (condition) {
-        if (!condition) {
-            return this;
-        }
-        if (this.isEmpty()) {
-            return this;
-        }
-        return new Path(this._value.rawPath.toLowerCase());
+    toLowerCase () {
+        return this;
     }
 }

@@ -2,7 +2,8 @@ import Part from './Part.js';
 
 export default class Query extends Part {
     constructor (rawQuery) {
-        rawQuery = super(rawQuery);
+        super(rawQuery);
+        rawQuery = this._value;
 
         let components = {};
         if (rawQuery) {

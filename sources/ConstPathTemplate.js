@@ -27,16 +27,16 @@ export default class ConstPathTemplate extends DefaultTemplate {
             if (pathParamMatch) {
                 const pathParamName = pathParamMatch[1];
                 const pathParamValue = routeParams.getParam(pathParamName);
-                matchFunctions = this._getParamMatchFunctions(pathParamName, pathParamValue, routeOptions, t);
-                generateFunctions = this._getParamGenerateFunctions(pathParamName, pathParamValue, routeOptions, t);
+                matchFunctions = this._getParamMatchFunctions(pathParamName, pathParamValue, routeOptions);
+                generateFunctions = this._getParamGenerateFunctions(pathParamName, pathParamValue, routeOptions);
                 const isPathParamOptional = pathParamMatch[2] === '*';
                 if (isPathParamOptional) {
                     optionalPathParamNames.push(pathParamName);
                     matchFunctions.optionalIndex = optionalPathParamNames.length;
                 }
             } else {
-                matchFunctions = this._getConstMatchFunctions(templateUriPathComponent, routeOptions, t);
-                generateFunctions = this._getConstGenerateFunctions(templateUriPathComponent, routeOptions, t);
+                matchFunctions = this._getConstMatchFunctions(templateUriPathComponent, routeOptions);
+                generateFunctions = this._getConstGenerateFunctions(templateUriPathComponent, routeOptions);
             }
 
             matchArray[t] = matchFunctions;
@@ -55,17 +55,18 @@ export default class ConstPathTemplate extends DefaultTemplate {
         const userUriPath = userUri.getParsedUri(partName);
         const templateUriPath = this._templateUri.getParsedUri(partName);
 
-        if (routeOptions.trailingSlashSensitive && userUriPath.hasTrailingSlash() !== templateUriPath.hasTrailingSlash()) {
+        if (routeOptions.trailingSlashSensitive &&
+            userUriPath.hasTrailingSlash() !== templateUriPath.hasTrailingSlash()) {
             return null;
         }
 
         const userUriPathComponentCount = userUriPath.toArray().length;
         const templateUriPathComponentCount = templateUriPath.toArray().length;
-        let pathComponentDifference = userUriPathComponentCount - templateUriPathComponentCount;
-        if (pathComponentDifference + optionalPathParamNames.length < 0) {
+        let pathComponentCountDifference = userUriPathComponentCount - templateUriPathComponentCount;
+        if (pathComponentCountDifference + optionalPathParamNames.length < 0) {
             return null;
         }
-        if (templateUriPath.isAbsolute() && pathComponentDifference > 0) {
+        if (templateUriPath.isAbsolute() && pathComponentCountDifference > 0) {
             return null;
         }
 
@@ -84,7 +85,9 @@ export default class ConstPathTemplate extends DefaultTemplate {
                     optionalOffset--;
                     continue componentLoop;
                 }
-                const templateIndex = templateUriPath.isAbsolute() ? m + optionalOffset : userUriPathComponentCount - m - 1 - optionalOffset;
+                this._currentPathComponentIndex = templateUriPath.isAbsolute() ?
+                    m + optionalOffset :
+                    userUriPathComponentCount - m - 1 - optionalOffset;
                 const pathMatchFragment = super.matchParsedValue(userUri, matchFunctions);
                 if (!pathMatchFragment) {
                     continue optionalLoop;
@@ -123,12 +126,12 @@ export default class ConstPathTemplate extends DefaultTemplate {
         return parsedValue;
     }
 
-    _getConstMatchFunctions (templateUriPathComponent, routeOptions, pathComponentIndex) {
+    _getConstMatchFunctions (templateUriPathComponent, routeOptions) {
         const partName = this._partName;
         const templateUriPathComponentString = templateUriPathComponent.toLowerCase(!routeOptions.caseSensitive).toString();
         return [(userUri) => {
             const userUriRawPathComponents = userUri.getParsedUri(partName).toArray();
-            const userUriPathComponent = new PathComponent(userUriRawPathComponents[pathComponentIndex]);
+            const userUriPathComponent = new PathComponent(userUriRawPathComponents[this._currentPathComponentIndex]);
             const userUriPathComponentString = userUriPathComponent.toLowerCase(!routeOptions.caseSensitive).toString();
             if (userUriPathComponentString === templateUriPathComponentString) {
                 return new MatchFragment(userUriPathComponentString);
@@ -141,9 +144,10 @@ export default class ConstPathTemplate extends DefaultTemplate {
         return [(userParams) => templateUriPathComponent];
     }
 
-    _getParamMatchFunctions (paramName, paramValue, routeOptions, pathComponentIndex) {
+    _getParamMatchFunctions (paramName, paramValue, routeOptions) {
         const getUserUriPart = (userUri, partName) => {
-            return new PathComponent(userUri.getParsedUri(partName).toArray()[pathComponentIndex]);
+            const userUriPath = userUri.getParsedUri('path');
+            return new PathComponent(userUriPath.toArray()[this._currentPathComponentIndex]);
         };
         return convertMatchItemsToFunctions(paramValue.match, {
             partName: 'pathComponent',

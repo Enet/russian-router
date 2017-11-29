@@ -66,17 +66,17 @@ export const getDefaultPart = (partName) => {
 
 export const getPortByProtocol = (protocol) => {
     protocol = (protocol + '').toLowerCase();
-    return protocolByPort[protocol] || null;
+    return new Port(protocolByPort[protocol] || null);
 };
 
 export const getRegExp = (regExpName) => {
     return regExps[regExpName];
 };
 
-export const getPortByParsedUri = (parsedUri) => {
-    const parsedPort = parsedUri.port;
+export const getPortByUri = (uri) => {
+    const parsedPort = uri.getParsedUri('port');
     if (parsedPort.isEmpty()) {
-        if (parsedUri.domain.isEmpty()) {
+        if (uri.getParsedUri('domain').isEmpty()) {
             const defaultPort = getDefaultPart('port');
             if (defaultPort.isEmpty()) {
                 const defaultProtocol = getDefaultPart('protocol');
@@ -90,7 +90,8 @@ export const getPortByParsedUri = (parsedUri) => {
                 return defaultPort;
             }
         } else {
-            const currentProtocol = parsedUri.protocol.isEmpty() ? getDefaultPart('protocol') : parsedUri.protocol;
+            const parsedProtocol = uri.getParsedUri('protocol');
+            const currentProtocol = parsedProtocol.isEmpty() ? getDefaultPart('protocol') : parsedProtocol;
             const portByCurrentProtocol = getPortByProtocol(currentProtocol.toLowerCase(true).toString());
             if (portByCurrentProtocol.isEmpty()) {
                 return parsedPort;
@@ -268,6 +269,7 @@ export const convertGenerateItemsToFunctions = (generateItems, converterOptions)
         return getGenerateFunctionByItem(generateItem, converterOptions);
     });
     generateFunctions.push(getFallbackGenerateFunction(converterOptions));
+    return generateFunctions;
 };
 
 

@@ -15,6 +15,7 @@ export default class ParamUniversalTemplate extends DefaultTemplate {
         const paramMatch = rawTemplate.match(getRegExp('param'));
         this._paramName = paramMatch[1];
         this._paramValue = routeParams.getParam(this._paramName);
+        this._initMatchGenerateFunctions(...arguments);
     }
 
     _getMatchFunctions (partName, templateUri, routeOptions) {
@@ -37,6 +38,6 @@ export default class ParamUniversalTemplate extends DefaultTemplate {
             partName,
             paramName,
             routeOptions
-        })
+        });
     }
 }
