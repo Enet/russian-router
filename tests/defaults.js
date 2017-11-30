@@ -77,5 +77,5 @@ export const defaultOptions = {
     trailingSlashSensitive: false,
     dataConsistency: true,
     onlyRoute: false,
-    sortMatchedRoutes: true
+    processMatchObjects: true
 };

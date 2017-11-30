@@ -7,6 +7,7 @@ import {
 import DefaultTemplate from './DefaultTemplate.js';
 import MatchFragment from './MatchFragment.js';
 import PathComponent from './PathComponent.js';
+import RouterError from './RouterError.js';
 
 export default class ConstPathTemplate extends DefaultTemplate {
     constructor (partName, templateUri, routeOptions, routeParams) {
@@ -56,7 +57,9 @@ export default class ConstPathTemplate extends DefaultTemplate {
         const templateUriPath = this._templateUri.getParsedUri(partName);
 
         if (!userUriPath.isAbsolute()) {
-            return null;
+            throw new RouterError(RouterError.ABSOLUTE_PATH_EXPECTED, {
+                currentPath: userUriPath.toString()
+            });
         }
 
         if (routeOptions.trailingSlashSensitive &&

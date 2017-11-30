@@ -4,7 +4,7 @@
   "description": "Universal abstract javascript router for any environment",
   "main": "index.js",
   "author": "Stepan Zhevak",
-  "license": "GPL-3.0",
+  "license": "SEE LICENSE IN LICENSE.md",
   "private": false,
   "scripts": {
     "test": "jest"
