@@ -51,6 +51,7 @@ export default class Route {
         this._parsedOptions = parsedOptions;
         this._parsedParams = parsedParams;
         this._parsedTemplate = parsedTemplate;
+        this._parsedPayload = rawRoute.payload;
     }
 
     matchUri (userUri) {
@@ -68,6 +69,7 @@ export default class Route {
         matchObject.name = this.name;
         matchObject.params = params;
         matchObject.options = Object.assign({}, this._parsedOptions);
+        matchObject.payload = this._parsedPayload;
         delete matchObject.options.routeName;
         delete matchObject.options.getDefaultPart;
         return matchObject;
