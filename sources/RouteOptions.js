@@ -12,6 +12,7 @@ export default class RouteOptions extends Options {
 
         this.canBeMatched = RouteOptions.calculateBooleanOption(rawOptions, defaultOptions, 'canBeMatched');
         this.canBeGenerated = RouteOptions.calculateBooleanOption(rawOptions, defaultOptions, 'canBeGenerated');
+        this.getDefaultPart = fallbackOptions.getDefaultPart;
         this.routeName = routeName;
         this.priority = +rawOptions.priority || 0;
     }

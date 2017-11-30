@@ -55,6 +55,10 @@ export default class ConstPathTemplate extends DefaultTemplate {
         const userUriPath = userUri.getParsedUri(partName);
         const templateUriPath = this._templateUri.getParsedUri(partName);
 
+        if (!userUriPath.isAbsolute()) {
+            return null;
+        }
+
         if (routeOptions.trailingSlashSensitive &&
             userUriPath.hasTrailingSlash() !== templateUriPath.hasTrailingSlash()) {
             return null;

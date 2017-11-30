@@ -73,7 +73,7 @@ export const getRegExp = (regExpName) => {
     return regExps[regExpName];
 };
 
-export const getPortByParsedUri = ({domain, protocol, port}) => {
+export const getPortByParsedUri = ({domain, protocol, port}, getDefaultPart) => {
     if (port.isEmpty()) {
         if (domain.isEmpty()) {
             const defaultPort = getDefaultPart('port');
@@ -153,7 +153,7 @@ export const splitUri = (rawUri, regExp, entityName) => {
     return splittedUri;
 };
 
-export const joinUri = (parsedUri) => {
+export const joinUri = (parsedUri, getDefaultPart) => {
     const {
         protocol,
         domain,
@@ -286,7 +286,7 @@ export const getParamGenerateFunction = ({partName, paramName, routeOptions}) =>
 
 export const getFallbackGenerateFunction = ({partName, paramName, routeOptions}) => {
     return (userParams) => {
-        const parsedValue = getDefaultPart(partName);
+        const parsedValue = routeOptions.getDefaultPart(partName);
         return parsedValue;
     };
 };

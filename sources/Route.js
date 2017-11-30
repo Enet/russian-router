@@ -78,15 +78,17 @@ export default class Route {
         }
 
         const routeName = this.name;
+        const parsedOptions = this._parsedOptions;
+        const {getDefaultPart} = parsedOptions;
         let rawUri;
         try {
-            rawUri = joinUri(parsedUri);
+            rawUri = joinUri(parsedUri, getDefaultPart);
         } catch (error) {
             debugger;
             throw new RouterError(RouterError[error.code], {routeName});
         }
 
-        if (this._parsedOptions.dataConsistency && !this.matchUri(new UserUri(rawUri))) {
+        if (parsedOptions.dataConsistency && !this.matchUri(new UserUri(rawUri, getDefaultPart))) {
             throw new RouterError(RouterError.INCONSISTENT_DATA, {routeName});
         }
 

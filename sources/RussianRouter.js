@@ -1,3 +1,6 @@
+import {
+    getDefaultPart
+} from './utils.js';
 import RouterOptions from './RouterOptions.js';
 import Route from './Route.js';
 import UserUri from './UserUri.js';
@@ -26,7 +29,7 @@ export default class RussianRouter {
     matchUri (rawUri, parsedRoutes=this._parsedRoutes) {
         const parsedOptions = this._parsedOptions;
         const matchObjects = [];
-        const userUri = new UserUri(rawUri);
+        const userUri = new UserUri(rawUri, this.getDefaultPart);
         for (let p in parsedRoutes) {
             const parsedRoute = parsedRoutes[p];
             if (!parsedRoute.canBeMatched()) {
@@ -43,8 +46,14 @@ export default class RussianRouter {
         return parsedOptions.processMatchObjects(matchObjects);
     }
 
+    getDefaultPart () {
+        return getDefaultPart.call(this, ...arguments);
+    }
+
     _parseOptions (rawOptions) {
-        return new RouterOptions(rawOptions);
+        const {getDefaultPart} = this;
+        const contextOptions = {getDefaultPart};
+        return new RouterOptions(rawOptions, contextOptions);
     }
 
     _parseRoutes (rawRoutes) {

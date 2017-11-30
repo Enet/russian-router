@@ -1,6 +1,3 @@
-import {
-    getDefaultPart
-} from './utils.js';
 import DefaultTemplate from './DefaultTemplate.js';
 import MatchFragment from './MatchFragment.js';
 
@@ -14,12 +11,16 @@ export default class ConstUniversalTemplate extends DefaultTemplate {
         return [(userUri) => {
             let templateUriPart = templateUri.getParsedUri(partName);
             if (templateUriPart.isEmpty()) {
-                templateUriPart = getDefaultPart(partName);
+                templateUriPart = routeOptions.getDefaultPart(partName);
             }
             const templateUriPartString = templateUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
 
             let userUriPart = userUri.getParsedUri(partName);
-            let userUriPartString = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
+            if (userUriPart.isEmpty()) {
+                userUriPart = routeOptions.getDefaultPart(partName);
+            }
+            const userUriPartString = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
+
             if (templateUriPart.isEmpty() || userUriPartString === templateUriPartString) {
                 return new MatchFragment(userUriPart.toString());
             }
