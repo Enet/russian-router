@@ -66,7 +66,7 @@ export const getDefaultPart = (partName) => {
 
 export const getPortByProtocol = (protocol) => {
     protocol = (protocol + '').toLowerCase();
-    return new Port(protocolByPort[protocol] || null);
+    return new Port(portByProtocol[protocol] || null);
 };
 
 export const getRegExp = (regExpName) => {
@@ -339,7 +339,7 @@ const partConstructors = {
     pathComponent: PathComponent
 };
 
-const protocolByPort = {
+const portByProtocol = {
     ftp: 21,
     ssh: 22,
     telnet: 23,
