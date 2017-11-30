@@ -28,8 +28,8 @@ export default class ConstQueryTemplate extends DefaultTemplate {
             if (queryParamMatch) {
                 const queryParamName = queryParamMatch[1];
                 const queryParamValue = routeParams.getParam(queryParamName);
-                matchFunctions = this._getParamMatchFunctions(queryParamName, queryParamValue, routeOptions);
-                generateFunctions = this._getParamGenerateFunctions(queryParamName, queryParamValue, routeOptions);
+                matchFunctions = this._getParamMatchFunctions(queryCoupleKey, queryParamName, queryParamValue, routeOptions);
+                generateFunctions = this._getParamGenerateFunctions(queryCoupleKey, queryParamName, queryParamValue, routeOptions);
             } else {
                 matchFunctions = this._getConstMatchFunctions(queryCoupleKey, queryCoupleParsedValue, routeOptions);
                 generateFunctions = this._getConstGenerateFunctions(queryCoupleKey, queryCoupleParsedValue, routeOptions);
@@ -45,14 +45,19 @@ export default class ConstQueryTemplate extends DefaultTemplate {
 
     matchParsedValue (userUri) {
         const matchObject = this._matchObject;
-        const value = {};
+        const routeOptions = this._routeOptions;
+        const value = userUri.getParsedUri('query').toObject();
         const params = {};
+
+        this._currentUserUriQueryObject = userUri
+            .getParsedUri('query')
+            .toLowerCase(!routeOptions.caseSensitive)
+            .toObject();
 
         for (let m in matchObject) {
             const matchFunctions = matchObject[m];
             const queryMatchFragment = super.matchParsedValue(userUri, matchFunctions);
             if (queryMatchFragment) {
-                value[m] = queryMatchFragment.value;
                 Object.assign(params, queryMatchFragment.params);
                 continue;
             }
@@ -63,14 +68,14 @@ export default class ConstQueryTemplate extends DefaultTemplate {
         return matchFragment;
     }
 
-    generateParsedValue (userParams) {
+    generateParsedValue (userParams, generatingUri) {
         const partName = this._partName;
         const generateObject = this._generateObject;
         let rawValue = [];
 
         for (let g in generateObject) {
             const generateFunctions = generateObject[g];
-            const queryCoupleParsedValue = super.generateParsedValue(userParams, generateFunctions);
+            const queryCoupleParsedValue = super.generateParsedValue(userParams, generatingUri, generateFunctions);
             if (queryCoupleParsedValue.isEmpty()) {
                 continue;
             }
@@ -84,12 +89,8 @@ export default class ConstQueryTemplate extends DefaultTemplate {
     }
 
     _getConstMatchFunctions (queryCoupleKey, queryCoupleParsedValue, routeOptions) {
-        const partName = this._partName;
         return [(userUri) => {
-            const userUriQueryObject = userUri
-                .getParsedUri(partName)
-                .toLowerCase(!routeOptions.caseSensitive)
-                .toObject();
+            const userUriQueryObject = this._currentUserUriQueryObject;
             const userUriQueryCoupleParsedValue = new QueryComponent(userUriQueryObject[queryCoupleKey]);
             if (userUriQueryCoupleParsedValue.isEmpty()) {
                 return null;
@@ -107,26 +108,24 @@ export default class ConstQueryTemplate extends DefaultTemplate {
         return [(userParams) => queryCoupleParsedValue];
     }
 
-    _getParamMatchFunctions (paramName, paramValue, routeOptions) {
+    _getParamMatchFunctions (queryCoupleKey, paramName, paramValue, routeOptions) {
         const getUserUriPart = (userUri, partName) => {
-            const userUriQuery = userUri.getParsedUri('query');
-            return new QueryComponent(userUriQuery.toObject()[paramName]);
+            const userUriQueryObject = this._currentUserUriQueryObject;
+            return new QueryComponent(userUriQueryObject[queryCoupleKey]);
         };
-        return convertMatchItemsToFunctions(
-            paramValue.match,
-            'queryComponent',
+        return convertMatchItemsToFunctions(paramValue.match, {
+            partName: 'queryComponent',
             paramName,
             routeOptions,
             getUserUriPart
-        );
+        });
     }
 
-    _getParamGenerateFunctions (paramName, paramValue, routeOptions) {
-        return convertGenerateItemsToFunctions(
-            paramValue.generate,
-            'queryComponent',
+    _getParamGenerateFunctions (queryCoupleKey, paramName, paramValue, routeOptions) {
+        return convertGenerateItemsToFunctions(paramValue.generate, {
+            partName: 'queryComponent',
             paramName,
             routeOptions
-        );
+        });
     }
 }

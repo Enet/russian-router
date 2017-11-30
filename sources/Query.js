@@ -1,5 +1,8 @@
 import Part from './Part.js';
 
+const keyToKey = (key) => key;
+const keyToLowerCase = (key) => key.toLowerCase();
+
 export default class Query extends Part {
     constructor (rawQuery) {
         super(rawQuery);
@@ -30,11 +33,11 @@ export default class Query extends Part {
         return this._value.rawQuery === null;
     }
 
-    toString () {
+    toString (transformKey=keyToKey) {
         const components = this.toObject();
         const queryCouples = [];
         for (let c in components) {
-            const queryCoupleKey = encodeURIComponent(c);
+            const queryCoupleKey = encodeURIComponent(transformKey(c));
             const queryCoupleValue = encodeURIComponent(components[c]);
             queryCouples.push(queryCoupleKey + '=' + queryCoupleValue);
         }
@@ -46,7 +49,11 @@ export default class Query extends Part {
         return this._value.components;
     }
 
-    toLowerCase () {
-        return this;
+    toLowerCase (condition) {
+        if (!condition) {
+            return this;
+        }
+        const PartConstructor = this.constructor;
+        return new PartConstructor(this.toString(keyToLowerCase));
     }
 }

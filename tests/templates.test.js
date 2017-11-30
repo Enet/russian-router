@@ -2,7 +2,7 @@ import RussianRouter from '../index.js';
 
 const routes = {
     index: {
-        url: '/hello/world'
+        uri: '/hello/world'
     }
 };
 

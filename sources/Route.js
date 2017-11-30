@@ -6,6 +6,7 @@ import {
 import RouteOptions from './RouteOptions.js';
 import RouteParams from './RouteParams.js';
 import TemplateUri from './TemplateUri.js';
+import UserUri from './UserUri.js';
 import RouterError from './RouterError.js';
 
 export default class Route {
@@ -65,6 +66,7 @@ export default class Route {
             Object.assign(params, matchFragment.params);
         }
         matchObject.name = this.name;
+        matchObject.params = params;
         return matchObject;
     }
 
@@ -72,14 +74,22 @@ export default class Route {
         const parsedTemplate = this._parsedTemplate;
         const parsedUri = {};
         for (let p in parsedTemplate) {
-            parsedUri[p] = parsedTemplate[p].generateParsedValue(userParams);
+            parsedUri[p] = parsedTemplate[p].generateParsedValue(userParams, parsedUri);
         }
 
-        const rawUri = joinUri(parsedUri);
-        if (this._parsedOptions.dataConsistency && !this.matchUri(rawUri)) {
-            const routeName = this.name;
+        const routeName = this.name;
+        let rawUri;
+        try {
+            rawUri = joinUri(parsedUri);
+        } catch (error) {
+            debugger;
+            throw new RouterError(RouterError[error.code], {routeName});
+        }
+
+        if (this._parsedOptions.dataConsistency && !this.matchUri(new UserUri(rawUri))) {
             throw new RouterError(RouterError.INCONSISTENT_DATA, {routeName});
         }
+
         return rawUri;
     }
 }

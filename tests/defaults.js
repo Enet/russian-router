@@ -1,66 +1,66 @@
 export const defaultRoutes = {
     index: {
-        url: '/'
+        uri: '/'
     },
     paramProtocol: {
-        url: '{protocol}://localhost/'
+        uri: '{protocol}://localhost/'
     },
     paramDomain: {
-        url: 'http://{domain}/'
+        uri: 'http://{domain}/'
     },
     paramPort: {
-        url: 'http://localhost:{port}/'
+        uri: 'http://localhost:{port}/'
     },
     paramWholePath: {
-        url: 'http://localhost{path}'
+        uri: 'http://localhost{path}'
     },
     paramPath: {
-        url: 'http://localhost/path/{to}'
+        uri: 'http://localhost/path/{to}'
     },
     paramWholeQuery: {
-        url: '/path/to/?{query}'
+        uri: '/path/to/?{query}'
     },
     paramQuery: {
-        url: '/path/to/?q={q}'
+        uri: '/path/to/?q={q}'
     },
     paramHash: {
-        url: '/path/to/#{hash}'
+        uri: '/path/to/#{hash}'
     },
     hasTrailingSlash: {
-        url: '/trailing/slash/'
+        uri: '/trailing/slash/'
     },
     noTrailingSlash: {
-        url: '/trailing/slash'
+        uri: '/trailing/slash'
     },
     constRandomCase: {
-        url: 'hTtP://lOcAlHoSt:1234/pAtH/tO?qUeRy=QuErY#hAsH'
+        uri: 'hTtP://lOcAlHoSt:1234/pAtH/tO?qUeRy=QuErY#hAsH'
     },
     paramRandomCase: {
-        url: '{protocol}://{domain}:{port}/pAtH/{to}?qUeRy={query}#{hash}'
+        uri: '{protocol}://{domain}:{port}/pAtH/{to}?qUeRy={query}#{hash}'
     },
     priorityX: {
-        url: '/priority/checking',
+        uri: '/priority/checking',
         options: {
             priority: -1
         }
     },
     priorityY: {
-        url: '/priority/checking',
+        uri: '/priority/checking',
         options: {
             priority: 0
         }
     },
     priorityZ: {
-        url: '/priority/checking',
+        uri: '/priority/checking',
         options: {
             priority: 1
         }
     },
     priorityD: {
-        url: '/priority/checking'
+        uri: '/priority/checking'
     },
     dataConsistency: {
-        url: '{protocol}://{domain}:{port}/{path}/?query={query}#{hash}',
+        uri: '{protocol}://{domain}:{port}/{path}/?query={query}#{hash}',
         params: {
             protocol: /http/,
             domain: /localhost/,

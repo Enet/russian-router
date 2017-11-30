@@ -18,12 +18,12 @@ export default class DefaultTemplate {
         return null;
     }
 
-    generateParsedValue (userParams, generateFunctions=this._generateFunctions) {
+    generateParsedValue (userParams, generatingUri, generateFunctions=this._generateFunctions) {
         const partName = this._partName;
         const routeOptions = this._routeOptions;
         let parsedValue;
         for (let generateFunction of generateFunctions) {
-            parsedValue = generateFunction(userParams, partName, routeOptions);
+            parsedValue = generateFunction(userParams, generatingUri, partName, routeOptions);
             if (!parsedValue.isEmpty()) {
                 return parsedValue;
             }

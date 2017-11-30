@@ -22,4 +22,8 @@ export default class Part {
         const PartConstructor = this.constructor;
         return new PartConstructor(this._value.toLowerCase());
     }
+
+    static isEqual (part1, part2) {
+        return false;
+    }
 }

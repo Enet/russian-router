@@ -62,11 +62,7 @@ export default class ConstPathTemplate extends DefaultTemplate {
 
         const userUriPathComponentCount = userUriPath.toArray().length;
         const templateUriPathComponentCount = templateUriPath.toArray().length;
-        let pathComponentCountDifference = userUriPathComponentCount - templateUriPathComponentCount;
-        if (pathComponentCountDifference + optionalPathParamNames.length < 0) {
-            return null;
-        }
-        if (templateUriPath.isAbsolute() && pathComponentCountDifference > 0) {
+        if (userUriPathComponentCount < templateUriPathComponentCount - optionalPathParamNames.length) {
             return null;
         }
 
@@ -83,7 +79,12 @@ export default class ConstPathTemplate extends DefaultTemplate {
                 const matchFunctions = matchArray[matchIndex];
                 if (matchFunctions.optionalIndex && o / Math.pow(2, matchFunctions.optionalIndex) % 1 >= 0.5) {
                     optionalOffset--;
-                    continue componentLoop;
+                    if (templateUriPath.isAbsolute() &&
+                        userUriPathComponentCount > templateUriPathComponentCount + optionalOffset) {
+                        continue optionalLoop;
+                    } else {
+                        continue componentLoop;
+                    }
                 }
                 this._currentPathComponentIndex = templateUriPath.isAbsolute() ?
                     m + optionalOffset :
@@ -99,14 +100,14 @@ export default class ConstPathTemplate extends DefaultTemplate {
         return null;
     }
 
-    generateParsedValue (userParams) {
+    generateParsedValue (userParams, generatingUri) {
         const partName = this._partName;
         const generateArray = this._generateArray;
         const templateUriPath = this._templateUri.getParsedUri(partName);
         let rawValue = [];
 
         for (let generateFunctions of generateArray) {
-            const pathComponent = super.generateParsedValue(userParams, generateFunctions);
+            const pathComponent = super.generateParsedValue(userParams, generatingUri, generateFunctions);
             if (pathComponent.isEmpty()) {
                 continue;
             }

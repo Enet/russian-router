@@ -44,7 +44,7 @@ test('Router option onlyRoute works correctly', () => {
     expect(router.matchUri('/priority/checking').length).toBe(1);
 });
 
-test('Router option sortMatchedRoutes works correctly', () => {
+test('Router option processMatchObjects works correctly', () => {
     let matchedRoutes;
 
     configure();
@@ -56,7 +56,7 @@ test('Router option sortMatchedRoutes works correctly', () => {
     expect(matchedRoutes[2].options.priority).toBe(0);
     expect(matchedRoutes[3].options.priority).toBe(-1);
 
-    configure({sortMatchedRoutes: true});
+    configure({processMatchObjects: true});
     init();
     matchedRoutes = router.matchUri('/priority/checking');
     expect(matchedRoutes[0].options.priority).toBe(1);
@@ -64,12 +64,12 @@ test('Router option sortMatchedRoutes works correctly', () => {
     expect(matchedRoutes[2].options.priority).toBe(0);
     expect(matchedRoutes[3].options.priority).toBe(-1);
 
-    configure({sortMatchedRoutes: false});
+    configure({processMatchObjects: false});
     init();
     matchedRoutes = router.matchUri('/priority/checking');
     expect(matchedRoutes[0].options.priority).not.toBe(1);
 
-    configure({sortMatchedRoutes: (matchedRoutes) => []});
+    configure({processMatchObjects: (matchedRoutes) => []});
     init();
     matchedRoutes = router.matchUri('/priority/checking');
     expect(matchedRoutes.length).toBe(0);

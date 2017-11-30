@@ -73,10 +73,9 @@ export const getRegExp = (regExpName) => {
     return regExps[regExpName];
 };
 
-export const getPortByUri = (uri) => {
-    const parsedPort = uri.getParsedUri('port');
-    if (parsedPort.isEmpty()) {
-        if (uri.getParsedUri('domain').isEmpty()) {
+export const getPortByParsedUri = ({domain, protocol, port}) => {
+    if (port.isEmpty()) {
+        if (domain.isEmpty()) {
             const defaultPort = getDefaultPart('port');
             if (defaultPort.isEmpty()) {
                 const defaultProtocol = getDefaultPart('protocol');
@@ -90,17 +89,16 @@ export const getPortByUri = (uri) => {
                 return defaultPort;
             }
         } else {
-            const parsedProtocol = uri.getParsedUri('protocol');
-            const currentProtocol = parsedProtocol.isEmpty() ? getDefaultPart('protocol') : parsedProtocol;
+            const currentProtocol = protocol.isEmpty() ? getDefaultPart('protocol') : protocol;
             const portByCurrentProtocol = getPortByProtocol(currentProtocol.toLowerCase(true).toString());
             if (portByCurrentProtocol.isEmpty()) {
-                return parsedPort;
+                return port;
             } else {
                 return portByCurrentProtocol;
             }
         }
     } else {
-        return parsedPort;
+        return port;
     }
 };
 
@@ -137,13 +135,13 @@ export const splitUri = (rawUri, regExp, entityName) => {
         uriStructureError.code = 'INVALID_URI_STRUCTURE';
         throw uriStructureError;
     }
-    if (uriMatch[3] && uriMatch[5][0] !== '/' && !getRegExp('param').test(uriMatch[5])) {
-        if (uriMatch[5]) {
+    if (uriMatch[2] && uriMatch[4][0] !== '/' && !getRegExp('param').test(uriMatch[5])) {
+        if (uriMatch[4]) {
             const pathStructureError = new Error('Path must be absolute when domain is specified!');
             pathStructureError.code = 'INVALID_PATH_STRUCTURE';
             throw pathStructureError;
         } else {
-            uriMatch[5] = '/';
+            uriMatch[4] = '/';
         }
     }
 
@@ -164,24 +162,49 @@ export const joinUri = (parsedUri) => {
         query,
         hash
     } = parsedUri;
-
     let rawUri = '';
-    if (!protocol.isEmpty()) {
+
+    const defaultProtocol = getDefaultPart('protocol');
+    const canProtocolBeOmitted = protocol.isEmpty() || Protocol.isEqual(protocol, defaultProtocol);
+    if (!canProtocolBeOmitted) {
         rawUri += protocol + ':';
     }
-    if (!protocol.isEmpty() || !domain.isEmpty() || !port.isEmpty()) {
-        rawUri += '//' + domain;
-        if (!port.isEmpty()) {
+
+    if (protocol.isEmpty()) {
+        protocol = defaultProtocol;
+    }
+    const defaultDomain = getDefaultPart('domain');
+    const canDomainBeOmitted = domain.isEmpty() || Domain.isEqual(domain, defaultDomain);
+    const portByProtocol = getPortByProtocol(protocol.toLowerCase(true).toString());
+    const canPortBeOmitted = port.isEmpty() || Port.isEqual(port, portByProtocol);
+    if (!canProtocolBeOmitted || !canDomainBeOmitted || !canPortBeOmitted) {
+        if (domain.isEmpty()) {
+            const domainExpectedError = new Error('Domain must be not empty when protocol or port are specified.');
+            domainExpectedError.code = 'DOMAIN_EXPECTED';
+            throw domainExpectedError;
+        } else {
+            rawUri += '//' + domain;
+        }
+        if (!canPortBeOmitted) {
             rawUri += ':' + port;
         }
     }
+
+    if (!domain.isEmpty() && !path.isAbsolute()) {
+        const pathStructureError = new Error('Path must be absolute when domain is specified!');
+        pathStructureError.code = 'INVALID_PATH_STRUCTURE';
+        throw pathStructureError;
+    }
     rawUri += path;
+
     if (!query.isEmpty()) {
         rawUri += '?' + query;
     }
+
     if (!hash.isEmpty()) {
         rawUri += '#' + hash;
     }
+
     return rawUri;
 };
 
@@ -226,7 +249,7 @@ export const getFallbackMatchFunction = ({partName, paramName, routeOptions, get
     return (userUri) => {
         const matchParams = {};
         const userUriPart = getUserUriPart(userUri, partName);
-        matchParams[paramName] = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
+        matchParams[paramName] = userUriPart.toString();
         return new MatchFragment(matchParams[paramName], matchParams);
     };
 };
@@ -243,32 +266,39 @@ export const convertMatchItemsToFunctions = (matchItems, converterOptions) => {
 
 export const getGenerateFunctionByItem = (generateItem, {partName, paramName, routeOptions}) => {
     const PartConstructor = getPartConstructor(partName);
-    return (userParams) => {
+    return (userParams, generatingItem) => {
         const rawValue = typeof generateItem === 'function' ?
-            generateItem(userParams, partName, paramName, routeOptions) :
+            generateItem(userParams, generatingItem, partName, paramName, routeOptions) :
             generateItem;
         const parsedValue = new PartConstructor(rawValue);
         return parsedValue;
     };
 };
 
-export const getFallbackGenerateFunction = ({partName, paramName, routeOptions}) => {
+export const getParamGenerateFunction = ({partName, paramName, routeOptions}) => {
     const PartConstructor = getPartConstructor(partName);
     return (userParams) => {
         const userParam = userParams[paramName];
-        let parsedValue = new PartConstructor(userParam);
-        if (parsedValue.isEmpty()) {
-            parsedValue = getDefaultPart(partName);
-        }
+        const parsedValue = new PartConstructor(userParam);
+        return parsedValue;
+    };
+};
+
+export const getFallbackGenerateFunction = ({partName, paramName, routeOptions}) => {
+    return (userParams) => {
+        const parsedValue = getDefaultPart(partName);
         return parsedValue;
     };
 };
 
 export const convertGenerateItemsToFunctions = (generateItems, converterOptions) => {
-    const generateFunctions = generateItems.map((generateItem) => {
-        return getGenerateFunctionByItem(generateItem, converterOptions);
-    });
-    generateFunctions.push(getFallbackGenerateFunction(converterOptions));
+    const generateFunctions = [
+        getParamGenerateFunction(converterOptions),
+        ...generateItems.map((generateItem) => {
+            return getGenerateFunctionByItem(generateItem, converterOptions);
+        }),
+        getFallbackGenerateFunction(converterOptions)
+    ];
     return generateFunctions;
 };
 
@@ -328,8 +358,8 @@ const protocolByPort = {
 };
 
 const regExps = {
-    uri: /^(([-.+A-z0-9]+:)?\/\/([A-z0-9.]+)(:[0-9]+)?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
-    template: /^(((?:[-.+A-z0-9]+|{[A-z0-9]+}):)?\/\/((?:[A-z0-9.]+|{[A-z0-9]+}))(:(?:[0-9]+|{[A-z0-9]+}))?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
+    uri: /^(?:([-.+A-z0-9]+:)?\/\/([A-z0-9.]+)(:[0-9]+)?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
+    template: /^(?:((?:[-.+A-z0-9]+|{[A-z0-9]+}):)?\/\/((?:[A-z0-9.]+|{[A-z0-9]+}))(:(?:[0-9]+|{[A-z0-9]+}))?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
     param: /^{([^*}]*)(\*)?}$/
 };
 

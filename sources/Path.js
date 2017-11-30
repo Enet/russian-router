@@ -12,7 +12,8 @@ export default class Path extends Part {
         if (rawPath) {
             isAbsolute = rawPath[0] === '/';
             hasTrailingSlash = rawPath.length > 1 && rawPath[rawPath.length - 1] === '/';
-            components = rawPath.split('/').slice(+isAbsolute, -hasTrailingSlash);
+            components = rawPath.split('/');
+            components = components.slice(+isAbsolute, -hasTrailingSlash + components.length);
         }
 
         let depthLevel = 0;

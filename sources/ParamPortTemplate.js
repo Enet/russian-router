@@ -1,6 +1,6 @@
 import {
     getPartConstructor,
-    getPortByUri
+    getPortByParsedUri
 } from './utils.js';
 import ParamUniversalTemplate from './ParamUniversalTemplate.js';
 
@@ -9,12 +9,13 @@ export default class ParamPortTemplate extends ParamUniversalTemplate {
         const PartConstructor = getPartConstructor(partName);
         const paramName = this._paramName;
         const generateFunctions = super._getGenerateFunctions(...arguments);
-        generateFunctions[generateFunctions.length - 1] = (userParams) => {
-            const userParam = userParams[paramName];
-            let parsedValue = new PartConstructor(userParam);
-            if (parsedValue.isEmpty()) {
-                parsedValue = getPortByUri(templateUri);
-            }
+        generateFunctions[generateFunctions.length - 1] = (userParams, generatingUri) => {
+            const emulatedParsedUri = {
+                protocol: generatingUri.protocol,
+                domain: generatingUri.domain,
+                port: templateUri.getParsedUri('port')
+            };
+            const parsedValue = getPortByParsedUri(emulatedParsedUri);
             return parsedValue;
         };
         return generateFunctions;
