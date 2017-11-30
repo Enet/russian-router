@@ -92,4 +92,14 @@ export default class Route {
 
         return rawUri;
     }
+
+    canBeMatched () {
+        const parsedOptions = this._parsedOptions;
+        return parsedOptions.canBeMatched;
+    }
+
+    canBeGenerated () {
+        const parsedOptions = this._parsedOptions;
+        return parsedOptions.canBeGenerated;
+    }
 }

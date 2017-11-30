@@ -15,7 +15,7 @@ export default class RussianRouter {
 
     generateUri (routeName, userParams={}, parsedRoutes=this._parsedRoutes) {
         const parsedRoute = parsedRoutes[routeName];
-        if (!parsedRoute) {
+        if (!parsedRoute || !parsedRoute.canBeGenerated()) {
             throw new RouterError(RouterError.INVALID_ROUTE_NAME, {
                 desiredRouteName: routeName
             });
@@ -29,6 +29,9 @@ export default class RussianRouter {
         const userUri = new UserUri(rawUri);
         for (let p in parsedRoutes) {
             const parsedRoute = parsedRoutes[p];
+            if (!parsedRoute.canBeMatched()) {
+                continue;
+            }
             const matchObject = parsedRoute.matchUri(userUri);
             if (matchObject) {
                 matchObjects.push(matchObject);
