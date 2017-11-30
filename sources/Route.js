@@ -67,6 +67,9 @@ export default class Route {
         }
         matchObject.name = this.name;
         matchObject.params = params;
+        matchObject.options = Object.assign({}, this._parsedOptions);
+        delete matchObject.options.routeName;
+        delete matchObject.options.getDefaultPart;
         return matchObject;
     }
 
@@ -84,7 +87,6 @@ export default class Route {
         try {
             rawUri = joinUri(parsedUri, getDefaultPart);
         } catch (error) {
-            debugger;
             throw new RouterError(RouterError[error.code], {routeName});
         }
 

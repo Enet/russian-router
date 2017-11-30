@@ -117,6 +117,21 @@ export const chooseTemplate = (templateUri, partName) => {
     return partTemplates[templateName];
 };
 
+export const emulateParsedUri = (templateUri, parsedUri) => {
+    const emulatedParsedUri = {
+        port: templateUri.getParsedUri('port')
+    };
+    const templateUriDomain = templateUri.getParsedUri('domain');
+    if (templateUriDomain.isEmpty()) {
+        emulatedParsedUri.protocol = templateUri.getParsedUri('protocol');
+        emulatedParsedUri.domain = templateUriDomain;
+    } else {
+        emulatedParsedUri.protocol = parsedUri.protocol;
+        emulatedParsedUri.domain = parsedUri.domain;
+    }
+    return emulatedParsedUri;
+};
+
 export const parseSplittedUriPart = (rawUriPart, regExp) => {
     if (!rawUriPart) {
         return null;
@@ -154,7 +169,7 @@ export const splitUri = (rawUri, regExp, entityName) => {
 };
 
 export const joinUri = (parsedUri, getDefaultPart) => {
-    const {
+    let {
         protocol,
         domain,
         port,
@@ -176,7 +191,11 @@ export const joinUri = (parsedUri, getDefaultPart) => {
     const defaultDomain = getDefaultPart('domain');
     const canDomainBeOmitted = domain.isEmpty() || Domain.isEqual(domain, defaultDomain);
     const portByProtocol = getPortByProtocol(protocol.toLowerCase(true).toString());
-    const canPortBeOmitted = port.isEmpty() || Port.isEqual(port, portByProtocol);
+    const defaultPort = getDefaultPart('port');
+    const canPortBeOmitted = false ||
+        port.isEmpty() ||
+        Port.isEqual(port, portByProtocol) ||
+        (canProtocolBeOmitted && canDomainBeOmitted && Port.isEqual(port, defaultPort));
     if (!canProtocolBeOmitted || !canDomainBeOmitted || !canPortBeOmitted) {
         if (domain.isEmpty()) {
             const domainExpectedError = new Error('Domain must be not empty when protocol or port are specified.');
