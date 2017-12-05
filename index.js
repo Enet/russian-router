@@ -1,7 +1,7 @@
-import * as utils from './sources/utils.js';
-import MatchFragment from './sources/MatchFragment.js';
-import RouterError from './sources/RouterError.js';
-import RussianRouter from './sources/RussianRouter.js';
+import * as utils from './src/utils.js';
+import MatchFragment from './src/MatchFragment.js';
+import RouterError from './src/RouterError.js';
+import RussianRouter from './src/RussianRouter.js';
 
 export {
     utils,

@@ -50,6 +50,14 @@ export default class RussianRouter {
         return getDefaultPart.call(this, ...arguments);
     }
 
+    getParsedRoutes () {
+        return this._parsedRoutes;
+    }
+
+    getParsedOptions () {
+        return this._parsedOptions;
+    }
+
     _parseOptions (rawOptions) {
         const {getDefaultPart} = this;
         const contextOptions = {getDefaultPart};

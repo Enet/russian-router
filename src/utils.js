@@ -150,7 +150,7 @@ export const splitUri = (rawUri, regExp, entityName) => {
         uriStructureError.code = 'INVALID_URI_STRUCTURE';
         throw uriStructureError;
     }
-    if (uriMatch[2] && uriMatch[4][0] !== '/' && !getRegExp('param').test(uriMatch[5])) {
+    if (uriMatch[2] && uriMatch[4][0] !== '/' && !getRegExp('param').test(uriMatch[4])) {
         if (uriMatch[4]) {
             const pathStructureError = new Error('Path must be absolute when domain is specified!');
             pathStructureError.code = 'INVALID_PATH_STRUCTURE';
