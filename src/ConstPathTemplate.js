@@ -72,6 +72,9 @@ export default class ConstPathTemplate extends DefaultTemplate {
         if (userUriPathComponentCount < templateUriPathComponentCount - optionalPathParamNames.length) {
             return null;
         }
+        if (templateUriPath.isAbsolute() && userUriPathComponentCount > templateUriPathComponentCount) {
+            return null;
+        }
 
         const matchArray = this._matchArray;
         const value = userUri.getParsedUri(partName).toString();
