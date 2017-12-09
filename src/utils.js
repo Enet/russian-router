@@ -142,7 +142,7 @@ export const parseSplittedUriPart = (rawUriPart, regExp) => {
     return rawUriPart || null;
 };
 
-export const splitUri = (rawUri, regExp, entityName) => {
+export const splitUri = (rawUri, regExp) => {
     const uriMatch = rawUri.match(regExp);
 
     if (!uriMatch) {

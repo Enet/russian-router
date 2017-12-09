@@ -9,6 +9,8 @@ import TemplateUri from './TemplateUri.js';
 import UserUri from './UserUri.js';
 import RouterError from './RouterError.js';
 
+const metaDataProperties = ['payload', 'key', 'data'];
+
 export default class Route {
     constructor (routeName, rawRoute, fallbackOptions={}) {
         const rawRouteParams = rawRoute.params || {};
@@ -46,12 +48,16 @@ export default class Route {
             const Template = chooseTemplate(templateUri, partName);
             parsedTemplate[partName] = new Template(partName, templateUri, parsedOptions, parsedParams);
         });
+        const parsedMetaData = {};
+        for (let metaDataProperty of metaDataProperties) {
+            parsedMetaData[metaDataProperty] = rawRoute[metaDataProperty];
+        }
 
         this._templateUri = templateUri;
         this._parsedOptions = parsedOptions;
         this._parsedParams = parsedParams;
         this._parsedTemplate = parsedTemplate;
-        this._parsedPayload = rawRoute.payload;
+        this._parsedMetaData = parsedMetaData;
     }
 
     matchUri (userUri) {
@@ -66,10 +72,12 @@ export default class Route {
             matchObject[p] = matchFragment.value;
             Object.assign(params, matchFragment.params);
         }
-        matchObject.name = this.name;
-        matchObject.params = params;
-        matchObject.options = Object.assign({}, this._parsedOptions);
-        matchObject.payload = this._parsedPayload;
+        const options = Object.assign({}, this._parsedOptions);
+        Object.assign(matchObject, this._parsedMetaData, {
+            name: this.name,
+            params,
+            options
+        });
         delete matchObject.options.routeName;
         delete matchObject.options.getDefaultPart;
         return matchObject;
@@ -107,5 +115,9 @@ export default class Route {
     canBeGenerated () {
         const parsedOptions = this._parsedOptions;
         return parsedOptions.canBeGenerated;
+    }
+
+    getParsedOptions () {
+        return this._parsedOptions;
     }
 }
