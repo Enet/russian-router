@@ -1,5 +1,4 @@
 import Options from './Options.js';
-import RouterError from './RouterError.js';
 
 const defaultOptions = {
     canBeMatched: true,

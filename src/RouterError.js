@@ -1,6 +1,5 @@
 import {
     toLowerCase,
-    toUpperCase,
     toTitleCase
 } from './utils.js';
 

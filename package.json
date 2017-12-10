@@ -2,17 +2,47 @@
   "name": "russian-router",
   "version": "0.0.1",
   "description": "Universal abstract javascript router for any environment",
-  "main": "index.js",
-  "author": "Stepan Zhevak",
+  "main": "lib/index.js",
+  "author": "Stepan Zhevak <enet@protonmail.ch> (https://zhevak.name)",
   "license": "SEE LICENSE IN LICENSE.md",
   "private": false,
-  "scripts": {
-    "test": "jest"
-  },
+  "repository": "enet/russian-router",
+  "keywords": [
+    "russian",
+    "router",
+    "route",
+    "routing",
+    "history",
+    "spa",
+    "singlepage",
+    "generate",
+    "match",
+    "uri",
+    "url"
+  ],
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.0.3",
     "babel-jest": "^21.2.0",
+    "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.1",
+    "eslint": "^4.13.0",
     "jest": "^21.2.1",
-    "regenerator-runtime": "^0.11.0"
+    "jest-cli": "^21.2.1",
+    "regenerator-runtime": "^0.11.1",
+    "webpack": "^3.9.1"
+  },
+  "scripts": {
+    "clean": "npm run clean:lib && npm run clean:dist",
+    "clean:lib": "rm -rf ./lib",
+    "clean:dist": "rm -rf ./dist",
+    "build": "npm run build:lib && npm run build:dist",
+    "build:lib": "babel src --out-dir ./lib",
+    "build:dist": "webpack && webpack --output-filename=./dist/russian-router.min.js -p",
+    "watch:lib": "babel src --watch --out-dir ./lib",
+    "watch:dist": "webpack --watch",
+    "test": "eslint ./src && jest",
+    "prepublish": "npm test && npm run clean && npm run build"
   }
 }

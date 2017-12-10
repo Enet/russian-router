@@ -24,6 +24,76 @@ import ConstHashTemplate from './ConstHashTemplate.js';
 
 
 
+const partTemplates = {
+    ParamProtocolTemplate,
+    ParamDomainTemplate,
+    ParamPortTemplate,
+    ParamPathTemplate,
+    ParamQueryTemplate,
+    ParamHashTemplate,
+    ConstProtocolTemplate,
+    ConstDomainTemplate,
+    ConstPortTemplate,
+    ConstPathTemplate,
+    ConstQueryTemplate,
+    ConstHashTemplate
+};
+
+const partNames = [
+    'protocol',
+    'domain',
+    'port',
+    'path',
+    'query',
+    'hash'
+];
+
+const partConstructors = {
+    protocol: Protocol,
+    domain: Domain,
+    port: Port,
+    path: Path,
+    query: Query,
+    hash: Hash,
+    queryComponent: QueryComponent,
+    pathComponent: PathComponent
+};
+
+const portByProtocol = {
+    ftp: 21,
+    ssh: 22,
+    telnet: 23,
+    smtp: 25,
+    dns: 53,
+    dhcp: 68,
+    tftp: 69,
+    http: 80,
+    pop: 110,
+    ntp: 123,
+    imap: 143,
+    snmp: 162,
+    bgp: 179,
+    https: 443,
+    ldaps: 636
+};
+
+const regExps = {
+    uri: /^(?:([-.+A-z0-9]+:)?\/\/([A-z0-9.]+)(:[0-9]+)?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
+    template: /^(?:((?:[-.+A-z0-9]+|{[A-z0-9]+}):)?\/\/((?:[A-z0-9.]+|{[A-z0-9]+}))(:(?:[0-9]+|{[A-z0-9]+}))?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
+    param: /^{([^*}]*)(\*)?}$/
+};
+
+const splittedUriPartRegExps = {
+    protocol: /:$/,
+    domain: null,
+    port: /^:/,
+    path: null,
+    query: /^\?/,
+    hash: /^#/
+};
+
+
+
 export const toLowerCase = (value='') => {
     return value.toLowerCase();
 };
@@ -319,74 +389,4 @@ export const convertGenerateItemsToFunctions = (generateItems, converterOptions)
         getFallbackGenerateFunction(converterOptions)
     ];
     return generateFunctions;
-};
-
-
-
-const partTemplates = {
-    ParamProtocolTemplate,
-    ParamDomainTemplate,
-    ParamPortTemplate,
-    ParamPathTemplate,
-    ParamQueryTemplate,
-    ParamHashTemplate,
-    ConstProtocolTemplate,
-    ConstDomainTemplate,
-    ConstPortTemplate,
-    ConstPathTemplate,
-    ConstQueryTemplate,
-    ConstHashTemplate
-};
-
-const partNames = [
-    'protocol',
-    'domain',
-    'port',
-    'path',
-    'query',
-    'hash'
-];
-
-const partConstructors = {
-    protocol: Protocol,
-    domain: Domain,
-    port: Port,
-    path: Path,
-    query: Query,
-    hash: Hash,
-    queryComponent: QueryComponent,
-    pathComponent: PathComponent
-};
-
-const portByProtocol = {
-    ftp: 21,
-    ssh: 22,
-    telnet: 23,
-    smtp: 25,
-    dns: 53,
-    dhcp: 68,
-    tftp: 69,
-    http: 80,
-    pop: 110,
-    ntp: 123,
-    imap: 143,
-    snmp: 162,
-    bgp: 179,
-    https: 443,
-    ldaps: 636
-};
-
-const regExps = {
-    uri: /^(?:([-.+A-z0-9]+:)?\/\/([A-z0-9.]+)(:[0-9]+)?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
-    template: /^(?:((?:[-.+A-z0-9]+|{[A-z0-9]+}):)?\/\/((?:[A-z0-9.]+|{[A-z0-9]+}))(:(?:[0-9]+|{[A-z0-9]+}))?)?([^?#]*)(\?[^#]*)?(#.*)?$/i,
-    param: /^{([^*}]*)(\*)?}$/
-};
-
-const splittedUriPartRegExps = {
-    protocol: /:$/,
-    domain: null,
-    port: /^:/,
-    path: null,
-    query: /^\?/,
-    hash: /^#/
 };

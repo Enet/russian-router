@@ -1,0 +1,33 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "jest": true
+    },
+    "extends": [
+        "eslint:recommended"
+    ],
+    "parser": "babel-eslint",
+    "parserOptions": {
+        "sourceType": "module",
+        "allowImportExportEverywhere": false,
+        "ecmaVersion": 7,
+        "ecmaFeatures": {}
+    },
+    "rules": {
+        "indent": ["error", 4],
+        "linebreak-style": ["error", "unix"],
+        "quotes": ["error", "single", {"allowTemplateLiterals": true}],
+        "comma-dangle": ["error", "never"],
+        "one-var": ["error", "never"],
+        "eqeqeq": ["error", "always"],
+        "curly": ["error", "all"],
+        "comma-spacing": ["error", {"before": false, "after": true}],
+        "camelcase": ["error", {"properties": "always"}],
+        "no-use-before-define": ["error", {"variables": true, "classes": true, "functions": false}],
+        "no-unused-vars": ["error", {"vars": "all", "args": "none"}],
+        "no-extra-parens": ["error", "all", {"nestedBinaryExpressions": false}],
+        "no-console": ["warn"],
+        "no-debugger": ["warn"]
+    }
+}
