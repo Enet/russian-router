@@ -8,6 +8,7 @@ import RouterError from './RouterError.js';
 
 export default class RussianRouter {
     constructor (rawRoutes={}, rawOptions={}) {
+        this.getDefaultPart = this.getDefaultPart.bind(this);
         this._parsedOptions = this._parseOptions(rawOptions);
         this._parsedRoutes = this._parseRoutes(rawRoutes);
     }

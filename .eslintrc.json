@@ -4,6 +4,9 @@
         "es6": true,
         "jest": true
     },
+    "globals": {
+        "module": true
+    },
     "extends": [
         "eslint:recommended"
     ],
@@ -15,7 +18,7 @@
         "ecmaFeatures": {}
     },
     "rules": {
-        "indent": ["error", 4],
+        "indent": ["error", 4, {"SwitchCase": 1}],
         "linebreak-style": ["error", "unix"],
         "quotes": ["error", "single", {"allowTemplateLiterals": true}],
         "comma-dangle": ["error", "never"],

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Universal abstract javascript router for any environment",
   "main": "lib/index.js",
-  "author": "Stepan Zhevak <enet@protonmail.ch> (https://zhevak.name)",
+  "author": "Stepan Zhevak <enet@protonmail.ch> (https://zhevak.name/)",
   "license": "SEE LICENSE IN LICENSE.md",
   "private": false,
   "repository": "enet/russian-router",

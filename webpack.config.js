@@ -11,7 +11,7 @@ module.exports = {
     output: {
         filename: 'dist/russian-router.js',
         libraryTarget: 'umd',
-        library: 'RussianRouter',
+        library: 'RussianRouter'
     },
     plugins: [
         new webpack.DefinePlugin({
