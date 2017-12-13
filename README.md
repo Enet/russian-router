@@ -389,7 +389,7 @@ Does nothing. But you should respect this method, because it's used by the most 
 ## router.generateUri(routeName, userParams, parsedRoutes)
 Generates uri by route's name. Third argument is optional and you don't need it, if you just use the router.
 
-<details><summary>Show the usage example.</summary>
+<details><summary>See the usage example.</summary>
 
 ```javascript
 const router = new RussianRouter({
@@ -416,7 +416,7 @@ router.generateUri('userItem', {
 ## router.matchUri(rawUri, parsedRoutes)
 Matches uri with parsed routes and returns match objects. Second argument is optional and you don't need it, if you just use the router.
 
-<details><summary>Show the usage example.</summary>
+<details><summary>See the usage example.</summary>
 
 ```javascript
 const router = new RussianRouter({
@@ -454,9 +454,9 @@ router.matchUri('/user/456?filter=positive');
 ## router.getDefaultPart(partName)
 Returns default uri part for the current environment. Most likely you need to override the method for protocol, domain and port. But it's strongly not recommended to override the method for path, query and hash parts. To get constructor of requested part, use the utility `getPartConstructor`.
 
-Show the packages [browser-russian-router](https://github.com/Enet/browser-russian-router) and [server-russian-router](https://github.com/Enet/server-russian-router) as examples. 
+See the packages [browser-russian-router](https://github.com/Enet/browser-russian-router) and [server-russian-router](https://github.com/Enet/server-russian-router) as examples. 
 
-<details><summary>Show example.</summary>
+<details><summary>See example.</summary>
 
 ```javascript
 import RussianRouter, {utils} from 'russian-router';
