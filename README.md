@@ -1,6 +1,13 @@
 # :ru: russian-router
 Russian router is an abstract javascript router. Despite of a short list of methods the package has powerful features. The main of ones is **matching and generating uris using the same template**. This router by itself provides only low level API and most likely you need to take a look at another packages like [server-russian-router](https://github.com/Enet/server-russian-router), [browser-russian-router](https://github.com/Enet/browser-russian-router) or [react-russian-router](https://github.com/Enet/react-russian-router).
 
+- :dog: [Installation](#dog-installation)
+- :mouse: [Concepts](#mouse-concepts)
+- :hamster: [Users API](#hamster-users-api)
+- :rabbit: [Developers API](#rabbit-developers-api)
+- :koala: [Examples](#koala-examples)
+- :bear: [Contributors](#bear-contributors)
+
 # :dog: Installation
 To install the current version with **npm** use the command below:
 ```sh
@@ -41,7 +48,7 @@ When a router is matching some custom uri, it looks for only those routes from t
 
 When a router is generating uri using some data, it gets a specific route from the routes' table and replaces all parameters with custom data. The router cares about default values and another nuances. Finally it returns a string, that is uri.
 
-Ideally generated uri should be always matched (if the same routes' table is used). In fact shit happens. To help avoid painful situations russian-router can test all the generated uris. It's called data consistence and strongly recommended for use in the development environment.
+Ideally generated uri should be always matched (if the same routes' table is used). In fact shit happens. To help avoid painful situations russian-router can test all the generated uris. It's called data consistency and strongly recommended for use in the development environment.
 
 ## Routes' Table
 The table of routes consists of... the routes! First of all russian-router takes an object, called `rawRoutes`. It seems like this:
