@@ -318,7 +318,7 @@ Creates a new instance of russian-router with provided routes and options.
 #### rawOptions
 Options are presented by a plain object.
 
-<details><summary>Read more about router options.</summary>
+<details><summary><strong>Read more about router options.</strong></summary>
 
 ```javascript
 const rawOptions = {
@@ -348,7 +348,7 @@ const rawOptions = {
 #### rawRoutes
 Routes are presented by a plain object, where keys are routes' names.
 
-<details><summary>Read more about router options.</summary>
+<details><summary><strong>Read more about routes' table.</strong></summary>
 
 ```javascript
 // Read concepts section above to get more details
@@ -396,7 +396,7 @@ Does nothing. But you should respect this method, because it's used by the most 
 ## router.generateUri(routeName, userParams, parsedRoutes)
 Generates uri by route's name. Third argument is optional and you don't need it, if you just use the router.
 
-<details><summary>See the usage example.</summary>
+<details><summary><strong>See the usage example.</strong></summary>
 
 ```javascript
 const router = new RussianRouter({
@@ -423,7 +423,7 @@ router.generateUri('userItem', {
 ## router.matchUri(rawUri, parsedRoutes)
 Matches uri with parsed routes and returns match objects. Second argument is optional and you don't need it, if you just use the router.
 
-<details><summary>See the usage example.</summary>
+<details><summary><strong>See the usage example.</strong></summary>
 
 ```javascript
 const router = new RussianRouter({
@@ -463,7 +463,7 @@ Returns default uri part for the current environment. Most likely you need to ov
 
 See the packages [browser-russian-router](https://github.com/Enet/browser-russian-router) and [server-russian-router](https://github.com/Enet/server-russian-router) as examples. 
 
-<details><summary>See example.</summary>
+<details><summary><strong>See example.</strong></summary>
 
 ```javascript
 import RussianRouter, {utils} from 'russian-router';
