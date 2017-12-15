@@ -267,47 +267,47 @@ At the moment it's impossible to substitute one class to another. But there is a
 <details><summary><strong>Read short classes' descriptions.</strong></summary>
 
 - parts
-    - Part *// abstract uri's part*
-    - Protocol *// uri's parsed protocol*
-    - Domain *// uri's parsed domain*
-    - Port *// uri's parsed port*
-    - Path *// uri's parsed path*
-    - PathComponent *// uri's parsed path component*
-    - Query *// uri's parsed query*
-    - QueryComponent *// uri's parsed query component*
-    - Hash *// uri's parsed hash*
+    - `Part` *// abstract uri's part*
+    - `Protocol` *// uri's parsed protocol*
+    - `Domain` *// uri's parsed domain*
+    - `Port` *// uri's parsed port*
+    - `Path` *// uri's parsed path*
+    - `PathComponent` *// uri's parsed path component*
+    - `Query` *// uri's parsed query*
+    - `QueryComponent` *// uri's parsed query component*
+    - `Hash` *// uri's parsed hash*
 - templates
-    - DefaultTemplate *// abstract template*
-    - ConstUniversalTemplate *// abstract template for constant*
-    - ConstProtocolTemplate *// protocol template for constant*
-    - ConstDomainTemplate *// domain template for constant*
-    - ConstPortTemplate *// port template for constant*
-    - ConstPathTemplate *// path template for constant*
-    - ConstQueryTemplate *// query template for constant*
-    - ConstHashTemplate *// hash template for constant*
-    - ParamUniversalTemplate *// abstract template for parameter*
-    - ParamProtocolTemplate *// protocol template for parameter*
-    - ParamDomainTemplate *// domain template for parameter*
-    - ParamPortTemplate *// port template for parameter*
-    - ParamPathTemplate *// path template for parameter*
-    - ParamQueryTemplate *// query template for parameter*
-    - ParamHashTemplate *// hash template for parameter*
+    - `DefaultTemplate` *// abstract template*
+    - `ConstUniversalTemplate` *// abstract template for constant*
+    - `ConstProtocolTemplate` *// protocol template for constant*
+    - `ConstDomainTemplate` *// domain template for constant*
+    - `ConstPortTemplate` *// port template for constant*
+    - `ConstPathTemplate` *// path template for constant*
+    - `ConstQueryTemplate` *// query template for constant*
+    - `ConstHashTemplate` *// hash template for constant*
+    - `ParamUniversalTemplate` *// abstract template for parameter*
+    - `ParamProtocolTemplate` *// protocol template for parameter*
+    - `ParamDomainTemplate` *// domain template for parameter*
+    - `ParamPortTemplate` *// port template for parameter*
+    - `ParamPathTemplate` *// path template for parameter*
+    - `ParamQueryTemplate` *// query template for parameter*
+    - `ParamHashTemplate` *// hash template for parameter*
 - options
-    - Options *// abstract options*
-    - RouterOptions *// options for a router*
-    - RouteOptions *// options for a route*
+    - `Options` *// abstract options*
+    - `RouterOptions` *// options for a router*
+    - `RouteOptions` *// options for a route*
 - uris
-    - Uri *// abstract parsed uri*
-    - TemplateUri *// parsed route's uri*
-    - UserUri *// parsed user uri, that will be matched*
+    - `Uri` *// abstract parsed uri*
+    - `TemplateUri` *// parsed route's uri*
+    - `UserUri` *// parsed user uri, that will be matched*
 - etc
-    - index *// external interface*
-    - RussianRouter *// router itself*
-    - Route *// parsed route for routes' table*
-    - RouteParams *// parsed route's parameters (match-generate objects)*
-    - MatchFragment *// special interface to join matches into a single match object*
-    - RouterError *// errors generator*
-    - utils *// bunch of important functions*
+    - `index` *// external interface*
+    - `RussianRouter` *// router itself*
+    - `Route` *// parsed route for routes' table*
+    - `RouteParams` *// parsed route's parameters (match-generate objects)*
+    - `MatchFragment` *// special interface to join matches into a single match object*
+    - `RouterError` *// errors generator*
+    - `utils` *// bunch of important functions*
 
 </details>
 
