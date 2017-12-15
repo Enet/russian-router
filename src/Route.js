@@ -70,7 +70,7 @@ export default class Route {
             contextOptions.router.getParsedOptions(),
             this._parsedOptions
         );
-        Object.assign(contextOptions, options, {routeName});
+        Object.assign(contextOptions, options);
 
         for (let p in parsedTemplate) {
             contextOptions.partName = p;
@@ -81,6 +81,8 @@ export default class Route {
             matchObject[p] = matchFragment.value;
             Object.assign(params, matchFragment.params);
         }
+
+        delete options.routeName;
         Object.assign(matchObject, this._parsedMetaData, {
             name: routeName,
             params,
