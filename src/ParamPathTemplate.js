@@ -8,16 +8,16 @@ export default class ParamPathTemplate extends ParamUniversalTemplate {
         const matchItems = this._paramValue.match;
         for (let matchItem of matchItems) {
             if (typeof matchItem !== 'function') {
-                const {routeName} = this._routeOptions;
+                const {routeName} = this._routeName;
                 throw new RouterError(RouterError.FUNCTION_EXPECTED, {
-                    entity: this._getEntity(),
+                    entity: this._getPartName(),
                     routeName
                 });
             }
         }
     }
 
-    _getEntity () {
+    _getPartName () {
         return 'path';
     }
 }

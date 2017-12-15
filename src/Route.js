@@ -12,7 +12,7 @@ import RouterError from './RouterError.js';
 const metaDataProperties = ['payload', 'key', 'data'];
 
 export default class Route {
-    constructor (routeName, rawRoute, fallbackOptions={}) {
+    constructor (routeName, rawRoute) {
         const rawRouteParams = rawRoute.params || {};
         const rawRouteOptions = rawRoute.options || {};
         const rawRouteUri = rawRoute.uri || '';
@@ -41,12 +41,12 @@ export default class Route {
 
         this.name = routeName;
         const templateUri = new TemplateUri(rawRouteUri);
-        const parsedOptions = new RouteOptions(rawRouteOptions, fallbackOptions, routeName);
+        const parsedOptions = new RouteOptions(rawRouteOptions, routeName);
         const parsedParams = new RouteParams(rawRouteParams);
         const parsedTemplate = {};
         forEachPartName((partName) => {
             const Template = chooseTemplate(templateUri, partName);
-            parsedTemplate[partName] = new Template(partName, templateUri, parsedOptions, parsedParams);
+            parsedTemplate[partName] = new Template(templateUri, parsedParams, routeName);
         });
         const parsedMetaData = {};
         for (let metaDataProperty of metaDataProperties) {
@@ -60,48 +60,62 @@ export default class Route {
         this._parsedMetaData = parsedMetaData;
     }
 
-    matchUri (userUri) {
+    matchUri (userUri, contextOptions) {
+        const routeName = this.name;
         const parsedTemplate = this._parsedTemplate;
         const matchObject = {};
         const params = {};
+        const options = Object.assign(
+            {},
+            contextOptions.router.getParsedOptions(),
+            this._parsedOptions
+        );
+        Object.assign(contextOptions, options, {routeName});
+
         for (let p in parsedTemplate) {
-            const matchFragment = parsedTemplate[p].matchParsedValue(userUri);
+            contextOptions.partName = p;
+            const matchFragment = parsedTemplate[p].matchParsedValue(userUri, contextOptions);
             if (!matchFragment) {
                 return null;
             }
             matchObject[p] = matchFragment.value;
             Object.assign(params, matchFragment.params);
         }
-        const options = Object.assign({}, this._parsedOptions);
         Object.assign(matchObject, this._parsedMetaData, {
-            name: this.name,
+            name: routeName,
             params,
             options
         });
-        delete matchObject.options.routeName;
-        delete matchObject.options.getDefaultPart;
         return matchObject;
     }
 
-    generateUri (userParams) {
+    generateUri (userParams, contextOptions) {
+        const routeName = this.name;
         const parsedTemplate = this._parsedTemplate;
-        const parsedUri = {};
+        const generatingUri = {};
+        Object.assign(
+            contextOptions,
+            contextOptions.router.getParsedOptions(),
+            this._parsedOptions,
+            {generatingUri, routeName}
+        );
         for (let p in parsedTemplate) {
-            parsedUri[p] = parsedTemplate[p].generateParsedValue(userParams, parsedUri);
+            contextOptions.partName = p;
+            generatingUri[p] = parsedTemplate[p].generateParsedValue(userParams, contextOptions);
         }
 
-        const routeName = this.name;
-        const parsedOptions = this._parsedOptions;
-        const {getDefaultPart} = parsedOptions;
         let rawUri;
         try {
-            rawUri = joinUri(parsedUri, getDefaultPart);
+            rawUri = joinUri(generatingUri, contextOptions);
         } catch (error) {
             throw new RouterError(RouterError[error.code], {routeName});
         }
 
-        if (parsedOptions.dataConsistency && !this.matchUri(new UserUri(rawUri, getDefaultPart))) {
-            throw new RouterError(RouterError.INCONSISTENT_DATA, {routeName});
+        if (contextOptions.dataConsistency) {
+            const userUri = new UserUri(contextOptions.router.resolveUri(rawUri), contextOptions);
+            if (!this.matchUri(userUri, {router: contextOptions.router})) {
+                throw new RouterError(RouterError.INCONSISTENT_DATA, {routeName});
+            }
         }
 
         return rawUri;

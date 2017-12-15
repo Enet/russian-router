@@ -312,10 +312,10 @@ At the moment it's impossible to substitute one class to another. But there is a
 </details>
 
 # :hamster: Users API
-## new RussianRouter(rawRoutes, rawOptions)
+## `new RussianRouter(rawRoutes, rawOptions)`
 Creates a new instance of russian-router with provided routes and options.
 
-#### rawOptions
+#### `rawOptions`
 Options are presented by a plain object.
 
 <details><summary><strong>Read more about router options.</strong></summary>
@@ -345,7 +345,7 @@ const rawOptions = {
 
 </details>
 
-#### rawRoutes
+#### `rawRoutes`
 Routes are presented by a plain object, where keys are routes' names.
 
 <details><summary><strong>Read more about routes' table.</strong></summary>
@@ -390,10 +390,10 @@ const rawRoutes = {
 
 </details>
 
-## router.destructor()
+## `router.destructor()`
 Does nothing. But you should respect this method, because it's used by the most of wrappers around russian-router.
 
-## router.generateUri(routeName, userParams, parsedRoutes)
+## `router.generateUri(routeName, userParams, parsedRoutes)`
 Generates uri by route's name. Third argument is optional and you don't need it, if you just use the router.
 
 <details><summary><strong>See the usage example.</strong></summary>
@@ -420,7 +420,7 @@ router.generateUri('userItem', {
 
 </details>
 
-## router.matchUri(rawUri, parsedRoutes)
+## `router.matchUri(rawUri, parsedRoutes)`
 Matches uri with parsed routes and returns match objects. Second argument is optional and you don't need it, if you just use the router.
 
 <details><summary><strong>See the usage example.</strong></summary>
@@ -458,7 +458,7 @@ router.matchUri('/user/456?filter=positive');
 </details>
 
 # :rabbit: Developers API
-## router.getDefaultPart(partName)
+## `router.getDefaultPart(partName)`
 Returns default uri part for the current environment. Most likely you need to override the method for protocol, domain and port. But it's strongly not recommended to override the method for path, query and hash parts. To get constructor of requested part, use the utility `getPartConstructor`.
 
 See the packages [browser-russian-router](https://github.com/Enet/browser-russian-router) and [server-russian-router](https://github.com/Enet/server-russian-router) as examples. 
@@ -488,16 +488,16 @@ export default CustomRussianRouter extends RussianRouter {
 
 </details>
 
-## router.getParsedRoutes()
+## `router.getParsedRoutes()`
 Returns an object of parsed routes (so called routes' table). Don't change that object and don't touch routes inside! You can read only returned data.
 
-## router.getParsedOptions()
+## `router.getParsedOptions()`
 Returns an object of parsed options. Don't modify it, if you want to get working router!
 
-## this._parseOptions(rawOptions)
+## `this._parseOptions(rawOptions)`
 Returns an instance of `RouterOptions` based on `rawOptions`. It's called only once during initialization. Most likely you don't need to modify options, but you probably want to attach the cache. See [server-russian-router](https://github.com/Enet/server-russian-router) as an example.
 
-## this._parseRoutes(rawRoutes)
+## `this._parseRoutes(rawRoutes)`
 Returns an object containing `Route` instances. It's called only once during initialization. Most likely you don't need to modify routes' table, but you probably want to attach the cache. See [server-russian-router](https://github.com/Enet/server-russian-router) as an example.
 
 # :koala: Examples

@@ -143,12 +143,12 @@ export const getRegExp = (regExpName) => {
     return regExps[regExpName];
 };
 
-export const getPortByParsedUri = ({domain, protocol, port}, getDefaultPart) => {
+export const getPortByParsedUri = ({domain, protocol, port}, {router}) => {
     if (port.isEmpty()) {
         if (domain.isEmpty()) {
-            const defaultPort = getDefaultPart('port');
+            const defaultPort = router.getDefaultPart('port');
             if (defaultPort.isEmpty()) {
-                const defaultProtocol = getDefaultPart('protocol');
+                const defaultProtocol = router.getDefaultPart('protocol');
                 const portByDefaultProtocol = getPortByProtocol(defaultProtocol.toLowerCase(true).toString());
                 if (portByDefaultProtocol.isEmpty()) {
                     return defaultPort;
@@ -159,7 +159,7 @@ export const getPortByParsedUri = ({domain, protocol, port}, getDefaultPart) => 
                 return defaultPort;
             }
         } else {
-            const currentProtocol = protocol.isEmpty() ? getDefaultPart('protocol') : protocol;
+            const currentProtocol = protocol.isEmpty() ? router.getDefaultPart('protocol') : protocol;
             const portByCurrentProtocol = getPortByProtocol(currentProtocol.toLowerCase(true).toString());
             if (portByCurrentProtocol.isEmpty()) {
                 return port;
@@ -238,7 +238,7 @@ export const splitUri = (rawUri, regExp) => {
     return splittedUri;
 };
 
-export const joinUri = (parsedUri, getDefaultPart) => {
+export const joinUri = (parsedUri, {router}) => {
     let {
         protocol,
         domain,
@@ -249,7 +249,7 @@ export const joinUri = (parsedUri, getDefaultPart) => {
     } = parsedUri;
     let rawUri = '';
 
-    const defaultProtocol = getDefaultPart('protocol');
+    const defaultProtocol = router.getDefaultPart('protocol');
     const canProtocolBeOmitted = protocol.isEmpty() || Protocol.isEqual(protocol, defaultProtocol);
     if (!canProtocolBeOmitted) {
         rawUri += protocol + ':';
@@ -258,10 +258,10 @@ export const joinUri = (parsedUri, getDefaultPart) => {
     if (protocol.isEmpty()) {
         protocol = defaultProtocol;
     }
-    const defaultDomain = getDefaultPart('domain');
+    const defaultDomain = router.getDefaultPart('domain');
     const canDomainBeOmitted = domain.isEmpty() || Domain.isEqual(domain, defaultDomain);
     const portByProtocol = getPortByProtocol(protocol.toLowerCase(true).toString());
-    const defaultPort = getDefaultPart('port');
+    const defaultPort = router.getDefaultPart('port');
     const canPortBeOmitted = false ||
         port.isEmpty() ||
         Port.isEqual(port, portByProtocol) ||
@@ -297,22 +297,23 @@ export const joinUri = (parsedUri, getDefaultPart) => {
     return rawUri;
 };
 
-export const getMatchFunctionByItem = (matchItem, {partName, paramName, routeOptions, getUserUriPart}) => {
+export const getMatchFunctionByItem = (matchItem, {partName, paramName, getUserUriPart}) => {
     if (typeof matchItem === 'function') {
-        return (userUri) => {
-            const matchFragment = matchItem(userUri, partName, paramName, routeOptions);
+        return (userUri, contextOptions) => {
+            contextOptions.paramName = paramName;
+            const matchFragment = matchItem(userUri, contextOptions);
             if (!isMatchFragment(matchFragment)) {
                 throw new RouterError(RouterError.MATCH_FRAGMENT_EXPECTED);
             }
             return matchFragment;
         };
     } else if (matchItem instanceof RegExp) {
-        if (!routeOptions.caseSensitive && matchItem.flags.indexOf('i') === -1) {
-            matchItem = new RegExp(matchItem.source, matchItem.flags + 'i');
-        }
-        return (userUri) => {
+        return (userUri, contextOptions) => {
+            if (!contextOptions.caseSensitive && matchItem.flags.indexOf('i') === -1) {
+                matchItem = new RegExp(matchItem.source, matchItem.flags + 'i');
+            }
             const userUriPart = getUserUriPart(userUri, partName);
-            const rawValue = userUriPart.toString();
+            const rawValue = (userUriPart.toString() || '') + '';
             if (!matchItem.test(rawValue)) {
                 return null;
             }
@@ -321,10 +322,10 @@ export const getMatchFunctionByItem = (matchItem, {partName, paramName, routeOpt
     } else {
         const PartConstructor = getPartConstructor(partName);
         const templateUriPart = new PartConstructor(matchItem);
-        const templateUriPartString = templateUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
-        return (userUri) => {
+        return (userUri, contextOptions) => {
+            const templateUriPartString = templateUriPart.toLowerCase(!contextOptions.caseSensitive).toString();
             const userUriPart = getUserUriPart(userUri, partName);
-            const userUriPartString = userUriPart.toLowerCase(!routeOptions.caseSensitive).toString();
+            const userUriPartString = userUriPart.toLowerCase(!contextOptions.caseSensitive).toString();
             if (userUriPartString === templateUriPartString) {
                 const rawValue = userUriPart.toString();
                 return new MatchFragment(rawValue, {[paramName]: rawValue});
@@ -334,8 +335,8 @@ export const getMatchFunctionByItem = (matchItem, {partName, paramName, routeOpt
     }
 };
 
-export const getFallbackMatchFunction = ({partName, paramName, routeOptions, getUserUriPart}) => {
-    return (userUri) => {
+export const getFallbackMatchFunction = ({partName, paramName, getUserUriPart}) => {
+    return (userUri, contextOptions) => {
         const matchParams = {};
         const userUriPart = getUserUriPart(userUri, partName);
         matchParams[paramName] = userUriPart.toString();
@@ -353,18 +354,19 @@ export const convertMatchItemsToFunctions = (matchItems, converterOptions) => {
     return matchFunctions;
 };
 
-export const getGenerateFunctionByItem = (generateItem, {partName, paramName, routeOptions}) => {
+export const getGenerateFunctionByItem = (generateItem, {partName, paramName}) => {
     const PartConstructor = getPartConstructor(partName);
-    return (userParams, generatingItem) => {
+    return (userParams, contextOptions) => {
+        contextOptions.paramName = paramName;
         const rawValue = typeof generateItem === 'function' ?
-            generateItem(userParams, generatingItem, partName, paramName, routeOptions) :
+            generateItem(userParams, contextOptions) :
             generateItem;
         const parsedValue = new PartConstructor(rawValue);
         return parsedValue;
     };
 };
 
-export const getParamGenerateFunction = ({partName, paramName, routeOptions}) => {
+export const getParamGenerateFunction = ({partName, paramName}) => {
     const PartConstructor = getPartConstructor(partName);
     return (userParams) => {
         const userParam = userParams[paramName];
@@ -373,9 +375,9 @@ export const getParamGenerateFunction = ({partName, paramName, routeOptions}) =>
     };
 };
 
-export const getFallbackGenerateFunction = ({partName, paramName, routeOptions}) => {
-    return (userParams) => {
-        const parsedValue = routeOptions.getDefaultPart(partName);
+export const getFallbackGenerateFunction = ({partName, paramName}) => {
+    return (userParams, contextOptions) => {
+        const parsedValue = contextOptions.router.getDefaultPart(partName);
         return parsedValue;
     };
 };

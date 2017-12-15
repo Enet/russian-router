@@ -1,7 +1,7 @@
 import ParamPathTemplate from './ParamPathTemplate.js';
 
 export default class ParamQueryTemplate extends ParamPathTemplate {
-    _getEntity () {
+    _getPartName () {
         return 'query';
     }
 }

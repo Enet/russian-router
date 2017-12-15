@@ -1,8 +1,7 @@
 import Options from './Options.js';
-import RouterError from './RouterError.js';
 
 export default class RouterOptions extends Options {
-    constructor (rawOptions, contextOptions) {
+    constructor (rawOptions) {
         super(rawOptions);
 
         let processMatchObjects;
@@ -14,15 +13,8 @@ export default class RouterOptions extends Options {
             processMatchObjects = (matchObjects) => matchObjects;
         }
 
-        contextOptions = contextOptions || {};
-        let getDefaultPart = contextOptions.getDefaultPart;
-        if (typeof getDefaultPart !== 'function') {
-            throw new RouterError(RouterError.INVALID_DEFAULT_GETTER);
-        }
-
         this.processMatchObjects = processMatchObjects;
-        this.getDefaultPart = getDefaultPart;
-        this.onlyRoute = RouterOptions.calculateBooleanOption(rawOptions, {onlyRoute: false}, 'onlyRoute');
+        RouterOptions.setBooleanOption(this, 'onlyRoute', rawOptions, {onlyRoute: false});
     }
 
     static sortMatchObjects (matchObjects) {

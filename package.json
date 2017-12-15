@@ -1,6 +1,6 @@
 {
   "name": "russian-router",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Universal abstract javascript router for any environment",
   "main": "lib/index.js",
   "author": "Stepan Zhevak <enet@protonmail.ch> (https://zhevak.name/)",
@@ -21,12 +21,12 @@
     "url"
   ],
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
+    "babel-cli": "^7.0.0-beta.3",
+    "babel-core": "^7.0.0-beta.3",
     "babel-eslint": "^8.0.3",
     "babel-jest": "^21.2.0",
     "babel-loader": "^7.1.2",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^7.0.0-beta.3",
     "eslint": "^4.13.0",
     "jest": "^21.2.1",
     "jest-cli": "^21.2.1",

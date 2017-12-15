@@ -1,25 +1,25 @@
 import RouterError from './RouterError.js';
 
-const defaultOptions = {
+const baseDefaultOptions = {
     caseSensitive: false,
     trailingSlashSensitive: false,
     dataConsistency: true
 };
 
 export default class Options {
-    constructor (rawOptions, fallbackOptions, errorData) {
-        fallbackOptions = fallbackOptions || defaultOptions;
+    constructor (rawOptions, errorData) {
         rawOptions = rawOptions || {};
         if (typeof rawOptions !== 'object') {
             this._handleTypeError(errorData);
         }
 
-        for (let d in defaultOptions) {
-            this[d] = Options.calculateBooleanOption(rawOptions, fallbackOptions, d);
+        for (let b in baseDefaultOptions) {
+            Options.setBooleanOption(this, b, rawOptions, this._getDefaultOptions(), true);
         }
     }
 
-    _checkRawOptions (rawOptions) {
+    _getDefaultOptions () {
+        return baseDefaultOptions;
     }
 
     _handleTypeError (errorData) {
@@ -29,10 +29,12 @@ export default class Options {
         }, errorData));
     }
 
-    static calculateBooleanOption (rawOptions, fallbackOptions, optionName) {
+    static setBooleanOption (object, optionName, rawOptions, fallbackOptions) {
         if (!rawOptions.hasOwnProperty(optionName)) {
             rawOptions = fallbackOptions;
         }
-        return !!rawOptions[optionName];
+        if (rawOptions.hasOwnProperty(optionName)) {
+            object[optionName] = !!rawOptions[optionName];
+        }
     }
 }

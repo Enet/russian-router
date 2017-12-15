@@ -1,19 +1,22 @@
 import Options from './Options.js';
 
-const defaultOptions = {
+const routeDefaultOptions = {
     canBeMatched: true,
     canBeGenerated: true
 };
 
 export default class RouteOptions extends Options {
-    constructor (rawOptions, fallbackOptions, routeName) {
-        super(rawOptions, fallbackOptions, routeName);
+    constructor (rawOptions, routeName) {
+        super(rawOptions, routeName);
 
-        this.canBeMatched = RouteOptions.calculateBooleanOption(rawOptions, defaultOptions, 'canBeMatched');
-        this.canBeGenerated = RouteOptions.calculateBooleanOption(rawOptions, defaultOptions, 'canBeGenerated');
-        this.getDefaultPart = fallbackOptions.getDefaultPart;
+        RouteOptions.setBooleanOption(this, 'canBeMatched', rawOptions, routeDefaultOptions);
+        RouteOptions.setBooleanOption(this, 'canBeGenerated', rawOptions, routeDefaultOptions);
         this.routeName = routeName;
         this.priority = +rawOptions.priority || 0;
+    }
+
+    _getDefaultOptions () {
+        return routeDefaultOptions;
     }
 
     _handleTypeError (routeName) {

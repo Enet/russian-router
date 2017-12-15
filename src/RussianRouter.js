@@ -8,7 +8,10 @@ import RouterError from './RouterError.js';
 
 export default class RussianRouter {
     constructor (rawRoutes={}, rawOptions={}) {
-        this.getDefaultPart = this.getDefaultPart.bind(this);
+        if (typeof this.getDefaultPart !== 'function') {
+            throw new RouterError(RouterError.INVALID_DEFAULT_GETTER);
+        }
+
         this._parsedOptions = this._parseOptions(rawOptions);
         this._parsedRoutes = this._parseRoutes(rawRoutes);
     }
@@ -24,19 +27,21 @@ export default class RussianRouter {
                 desiredRouteName: routeName
             });
         }
-        return parsedRoute.generateUri(userParams);
+        const contextOptions = {router: this};
+        return parsedRoute.generateUri(userParams, contextOptions);
     }
 
     matchUri (rawUri, parsedRoutes=this._parsedRoutes) {
         const parsedOptions = this._parsedOptions;
         const matchObjects = [];
-        const userUri = new UserUri(rawUri, this.getDefaultPart);
+        const userUri = new UserUri(rawUri, {router: this});
         for (let p in parsedRoutes) {
+            const contextOptions = {router: this};
             const parsedRoute = parsedRoutes[p];
             if (!parsedRoute.canBeMatched()) {
                 continue;
             }
-            const matchObject = parsedRoute.matchUri(userUri);
+            const matchObject = parsedRoute.matchUri(userUri, contextOptions);
             if (matchObject) {
                 matchObjects.push(matchObject);
                 if (parsedOptions.onlyRoute) {
@@ -47,8 +52,13 @@ export default class RussianRouter {
         return parsedOptions.processMatchObjects(matchObjects);
     }
 
+    resolveUri (rawUri) {
+        return rawUri;
+    }
+
     getDefaultPart () {
-        return getDefaultPart.call(this, ...arguments);
+        const workAroundSolutionForBabelBug = getDefaultPart;
+        return workAroundSolutionForBabelBug.call(this, ...arguments);
     }
 
     getParsedRoutes () {
@@ -60,16 +70,13 @@ export default class RussianRouter {
     }
 
     _parseOptions (rawOptions) {
-        const {getDefaultPart} = this;
-        const contextOptions = {getDefaultPart};
-        return new RouterOptions(rawOptions, contextOptions);
+        return new RouterOptions(rawOptions);
     }
 
     _parseRoutes (rawRoutes) {
         const parsedRoutes = {};
-        const fallbackOptions = this._parsedOptions;
         for (let routeName in rawRoutes) {
-            parsedRoutes[routeName] = new Route(routeName, rawRoutes[routeName], fallbackOptions);
+            parsedRoutes[routeName] = new Route(routeName, rawRoutes[routeName]);
         }
         return parsedRoutes;
     }

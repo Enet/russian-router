@@ -25,5 +25,6 @@ Object.assign(RouterError, {
     MATCH_FRAGMENT_EXPECTED: () => `Match function must return null or MatchFragment's instance.`,
     FUNCTION_EXPECTED: ({entity}) => `Only function could be used as parameter for the whole ${toLowerCase(entity)}.`,
     DOMAIN_EXPECTED: () => `URI must contain not empty domain when protocol or port is specified.`,
-    ABSOLUTE_PATH_EXPECTED: ({currentPath}) => `Matching URI path must be absolute. Current path is ${currentPath}.`
+    ABSOLUTE_PATH_EXPECTED: ({currentPath}) => `Matching URI path must be absolute. Current path is ${currentPath}.`,
+    CUSTOM_ERROR: ({message}) => `${message}`
 });

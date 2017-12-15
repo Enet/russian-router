@@ -1,16 +1,14 @@
 export default class DefaultTemplate {
-    constructor (partName, templateUri, routeOptions, routeParams) {
-        this._partName = partName;
+    constructor (templateUri, routeParams, routeName) {
+        this._partName = this._getPartName();
         this._templateUri = templateUri;
-        this._routeOptions = routeOptions;
         this._routeParams = routeParams;
+        this._routeName = routeName;
     }
 
-    matchParsedValue (userUri, matchFunctions=this._matchFunctions) {
-        const partName = this._partName;
-        const routeOptions = this._routeOptions;
+    matchParsedValue (userUri, contextOptions, matchFunctions=this._matchFunctions) {
         for (let matchFunction of matchFunctions) {
-            const matchFragment = matchFunction(userUri, partName, routeOptions);
+            const matchFragment = matchFunction(userUri, contextOptions);
             if (matchFragment) {
                 return matchFragment;
             }
@@ -18,12 +16,10 @@ export default class DefaultTemplate {
         return null;
     }
 
-    generateParsedValue (userParams, generatingUri, generateFunctions=this._generateFunctions) {
-        const partName = this._partName;
-        const routeOptions = this._routeOptions;
+    generateParsedValue (userParams, contextOptions, generateFunctions=this._generateFunctions) {
         let parsedValue;
         for (let generateFunction of generateFunctions) {
-            parsedValue = generateFunction(userParams, generatingUri, partName, routeOptions);
+            parsedValue = generateFunction(userParams, contextOptions);
             if (!parsedValue.isEmpty()) {
                 return parsedValue;
             }
@@ -31,12 +27,16 @@ export default class DefaultTemplate {
         return parsedValue;
     }
 
-    _getMatchFunctions (partName, templateUri, routeOptions, routeParams) {
+    _getMatchFunctions (templateUri, routeParams) {
         return [];
     }
 
-    _getGenerateFunctions (partName, templateUri, routeOptions, routeParams) {
+    _getGenerateFunctions (templateUri, routeParams) {
         return [];
+    }
+
+    _getPartName () {
+        throw 'Part name must be defined for the template!';
     }
 
     _initMatchGenerateFunctions () {

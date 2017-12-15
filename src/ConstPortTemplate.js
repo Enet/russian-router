@@ -6,10 +6,11 @@ import ConstUniversalTemplate from './ConstUniversalTemplate.js';
 import MatchFragment from './MatchFragment.js';
 
 export default class ConstPortTemplate extends ConstUniversalTemplate {
-    _getMatchFunctions (partName, templateUri, routeOptions) {
-        return [(userUri) => {
+    _getMatchFunctions (templateUri) {
+        return [(userUri, contextOptions) => {
+            const {partName} = contextOptions;
             const emulatedParsedUri = emulateParsedUri(templateUri, userUri.getParsedUri());
-            const templateUriPort = getPortByParsedUri(emulatedParsedUri, routeOptions.getDefaultPart);
+            const templateUriPort = getPortByParsedUri(emulatedParsedUri, contextOptions);
             const templateUriPortString = templateUriPort.toString();
             const userUriPort = userUri.getParsedUri(partName);
             const userUriPortString = userUriPort.toString();
@@ -20,11 +21,15 @@ export default class ConstPortTemplate extends ConstUniversalTemplate {
         }];
     }
 
-    _getGenerateFunctions (partName, templateUri, routeOptions) {
-        return [(userParams, generatingUri) => {
-            const emulatedParsedUri = emulateParsedUri(templateUri, generatingUri);
-            const parsedValue = getPortByParsedUri(emulatedParsedUri, routeOptions.getDefaultPart);
+    _getGenerateFunctions (templateUri) {
+        return [(userParams, contextOptions) => {
+            const emulatedParsedUri = emulateParsedUri(templateUri, contextOptions.generatingUri);
+            const parsedValue = getPortByParsedUri(emulatedParsedUri, contextOptions);
             return parsedValue;
         }];
+    }
+
+    _getPartName () {
+        return 'port';
     }
 }
