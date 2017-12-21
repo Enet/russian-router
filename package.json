@@ -21,12 +21,12 @@
     "url"
   ],
   "devDependencies": {
-    "babel-cli": "^7.0.0-beta.3",
-    "babel-core": "^7.0.0-beta.3",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
     "babel-eslint": "^8.0.3",
     "babel-jest": "^21.2.0",
     "babel-loader": "^7.1.2",
-    "babel-preset-env": "^7.0.0-beta.3",
+    "babel-preset-env": "^1.6.1",
     "eslint": "^4.13.0",
     "jest": "^21.2.1",
     "jest-cli": "^21.2.1",
@@ -44,5 +44,12 @@
     "watch:dist": "webpack --watch",
     "test": "eslint ./src && jest",
     "prepublish": "npm test && npm run clean && npm run build"
+  },
+  "jest": {
+    "collectCoverage": false,
+    "moduleNameMapper": {
+      "^russian-router$": "<rootDir>/src/index.js",
+      "^utils$": "<rootDir>/tests/utils.js"
+    }
   }
 }

@@ -8,6 +8,13 @@ export default class TemplateUri extends Uri {
     constructor (rawUri, routeName) {
         super(rawUri);
         this._routeName = routeName;
+
+        const emptyPathComponentIndex = this._value.parsedUri.path.toArray().findIndex((component) => {
+            return !component;
+        });
+        if (emptyPathComponentIndex !== -1) {
+            throw new RouterError(RouterError.PATH_COMPONENT_EXPECTED, {routeName});
+        }
     }
 
     _getRegExp () {

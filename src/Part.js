@@ -7,6 +7,10 @@ export default class Part {
         return this._value === null;
     }
 
+    isCaseSensitive () {
+        return true;
+    }
+
     toString () {
         const rawValue = (this._value || '') + '';
         return rawValue;
@@ -24,6 +28,8 @@ export default class Part {
     }
 
     static isEqual (part1, part2) {
-        return false;
+        part1 = part1.toString().toLowerCase();
+        part2 = part2.toString().toLowerCase();
+        return part1 === part2;
     }
 }

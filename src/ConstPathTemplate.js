@@ -30,10 +30,12 @@ export default class ConstPathTemplate extends DefaultTemplate {
                 const pathParamValue = routeParams.getParam(pathParamName);
                 matchFunctions = this._getParamMatchFunctions(pathParamName, pathParamValue);
                 generateFunctions = this._getParamGenerateFunctions(pathParamName, pathParamValue);
+                generateFunctions.paramName = pathParamName;
                 const isPathParamOptional = pathParamMatch[2] === '*';
                 if (isPathParamOptional) {
                     optionalPathParamNames.push(pathParamName);
                     matchFunctions.optionalIndex = optionalPathParamNames.length;
+                    generateFunctions.optionalIndex = optionalPathParamNames.length;
                 }
             } else {
                 matchFunctions = this._getConstMatchFunctions(templateUriPathComponent);
@@ -77,14 +79,14 @@ export default class ConstPathTemplate extends DefaultTemplate {
 
         const matchArray = this._matchArray;
         const value = userUri.getParsedUri(partName).toString();
-        const params = {};
 
         optionalLoop:
         for (let o = 0, ol = Math.pow(2, optionalPathParamNames.length); o < ol; o++) {
+            const params = {};
             let optionalOffset = 0;
             componentLoop:
             for (let m = 0, ml = matchArray.length; m < ml; m++) {
-                const matchIndex = templateUriPath.isAbsolute() ? m : ml - m - 1;
+                const matchIndex = templateUriPath.isAbsolute() ? m : ml - 1 - m;
                 const matchFunctions = matchArray[matchIndex];
                 if (matchFunctions.optionalIndex && o / Math.pow(2, matchFunctions.optionalIndex) % 1 >= 0.5) {
                     optionalOffset--;
@@ -92,13 +94,18 @@ export default class ConstPathTemplate extends DefaultTemplate {
                         userUriPathComponentCount > templateUriPathComponentCount + optionalOffset) {
                         continue optionalLoop;
                     } else {
+                        const optionalParamName = optionalPathParamNames[matchFunctions.optionalIndex - 1];
+                        Object.assign(params, {
+                            [optionalParamName]: ''
+                        });
                         continue componentLoop;
                     }
                 }
                 this._currentPathComponentIndex = templateUriPath.isAbsolute() ?
                     m + optionalOffset :
-                    userUriPathComponentCount - m - 1 - optionalOffset;
+                    userUriPathComponentCount - 1 - m - optionalOffset;
                 const pathMatchFragment = super.matchParsedValue(userUri, contextOptions, matchFunctions);
+                console.log(pathMatchFragment, userUriPathComponentCount, m, optionalOffset);
                 if (!pathMatchFragment) {
                     continue optionalLoop;
                 }
@@ -117,8 +124,17 @@ export default class ConstPathTemplate extends DefaultTemplate {
 
         for (let generateFunctions of generateArray) {
             const pathComponent = super.generateParsedValue(userParams, contextOptions, generateFunctions);
-            if (pathComponent.isEmpty()) {
-                continue;
+            if (pathComponent.isEmpty() && generateFunctions.paramName) {
+                if (generateFunctions.optionalIndex) {
+                    continue;
+                } else {
+                    const {paramName} = generateFunctions;
+                    const routeName = this._routeName;
+                    throw new RouterError(RouterError.PATH_COMPONENT_EXPECTED, {
+                        paramName,
+                        routeName
+                    });
+                }
             }
             rawValue.push(encodeURIComponent(pathComponent.toString()));
         }

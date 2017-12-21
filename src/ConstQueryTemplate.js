@@ -25,15 +25,23 @@ export default class ConstQueryTemplate extends DefaultTemplate {
 
             for (let caseSensitive of [true, false]) {
                 let queryCoupleKey = new QueryComponent(templateUriQueryCoupleKey).toLowerCase(!caseSensitive);
+                let matchFunctions;
+                let generateFunctions;
                 if (queryParamMatch) {
                     const queryParamName = queryParamMatch[1];
                     const queryParamValue = routeParams.getParam(queryParamName);
-                    matchObjects[caseSensitive][queryCoupleKey] = this._getParamMatchFunctions(queryCoupleKey, queryParamName, queryParamValue);
-                    generateObjects[caseSensitive][queryCoupleKey] = this._getParamGenerateFunctions(queryCoupleKey, queryParamName, queryParamValue);
+                    matchFunctions = this._getParamMatchFunctions(queryCoupleKey, queryParamName, queryParamValue);
+                    generateFunctions = this._getParamGenerateFunctions(queryCoupleKey, queryParamName, queryParamValue);
+                    if (queryParamMatch[2] === '*') {
+                        matchFunctions.isOptional = true;
+                        generateFunctions.isOptional = true;
+                    }
                 } else {
-                    matchObjects[caseSensitive][queryCoupleKey] = this._getConstMatchFunctions(queryCoupleKey, queryCoupleParsedValue);
-                    generateObjects[caseSensitive][queryCoupleKey] = this._getConstGenerateFunctions(queryCoupleKey, queryCoupleParsedValue);
+                    matchFunctions = this._getConstMatchFunctions(queryCoupleKey, queryCoupleParsedValue);
+                    generateFunctions = this._getConstGenerateFunctions(queryCoupleKey, queryCoupleParsedValue);
                 }
+                matchObjects[caseSensitive][queryCoupleKey] = matchFunctions;
+                generateObjects[caseSensitive][queryCoupleKey] = generateFunctions;
             }
         }
 
@@ -55,8 +63,10 @@ export default class ConstQueryTemplate extends DefaultTemplate {
             const matchFunctions = matchObject[m];
             const queryMatchFragment = super.matchParsedValue(userUri, contextOptions, matchFunctions);
             if (queryMatchFragment) {
-                Object.assign(params, queryMatchFragment.params);
-                continue;
+                if (queryMatchFragment.value !== null || matchFunctions.isOptional) {
+                    Object.assign(params, queryMatchFragment.params);
+                    continue;
+                }
             }
             return null;
         }
@@ -73,7 +83,7 @@ export default class ConstQueryTemplate extends DefaultTemplate {
         for (let g in generateObject) {
             const generateFunctions = generateObject[g];
             const queryCoupleParsedValue = super.generateParsedValue(userParams, contextOptions, generateFunctions);
-            if (queryCoupleParsedValue.isEmpty()) {
+            if (generateFunctions.isOptional && queryCoupleParsedValue.isEmpty()) {
                 continue;
             }
             rawValue.push(encodeURIComponent(g) + '=' + encodeURIComponent(queryCoupleParsedValue.toString()));
@@ -108,7 +118,11 @@ export default class ConstQueryTemplate extends DefaultTemplate {
     _getParamMatchFunctions (queryCoupleKey, paramName, paramValue) {
         const getUserUriPart = (userUri) => {
             const userUriQueryObject = this._currentUserUriQueryObject;
-            return new QueryComponent(userUriQueryObject[queryCoupleKey]);
+            const userUriQueryCoupleParsedValue = new QueryComponent(userUriQueryObject[queryCoupleKey]);
+            if (!paramValue.match.length && userUriQueryCoupleParsedValue.isEmpty()) {
+                userUriQueryCoupleParsedValue.toString = () => null;
+            }
+            return userUriQueryCoupleParsedValue;
         };
         return convertMatchItemsToFunctions(paramValue.match, {
             partName: 'queryComponent',

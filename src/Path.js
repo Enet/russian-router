@@ -23,6 +23,7 @@ export default class Path extends Part {
             .filter((component) => {
                 if (component === '..') {
                     depthLevel++;
+                    return false;
                 }
                 if (depthLevel === 0) {
                     return true;

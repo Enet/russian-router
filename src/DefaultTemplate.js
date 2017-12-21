@@ -27,18 +27,6 @@ export default class DefaultTemplate {
         return parsedValue;
     }
 
-    _getMatchFunctions (templateUri, routeParams) {
-        return [];
-    }
-
-    _getGenerateFunctions (templateUri, routeParams) {
-        return [];
-    }
-
-    _getPartName () {
-        throw 'Part name must be defined for the template!';
-    }
-
     _initMatchGenerateFunctions () {
         this._matchFunctions = this._getMatchFunctions(...arguments);
         this._generateFunctions = this._getGenerateFunctions(...arguments);

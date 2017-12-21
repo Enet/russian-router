@@ -301,6 +301,7 @@ export const getMatchFunctionByItem = (matchItem, {partName, paramName, getUserU
     if (typeof matchItem === 'function') {
         return (userUri, contextOptions) => {
             contextOptions.paramName = paramName;
+            contextOptions.MatchFragment = MatchFragment;
             const matchFragment = matchItem(userUri, contextOptions);
             if (!isMatchFragment(matchFragment)) {
                 throw new RouterError(RouterError.MATCH_FRAGMENT_EXPECTED);
@@ -309,10 +310,11 @@ export const getMatchFunctionByItem = (matchItem, {partName, paramName, getUserU
         };
     } else if (matchItem instanceof RegExp) {
         return (userUri, contextOptions) => {
-            if (!contextOptions.caseSensitive && matchItem.flags.indexOf('i') === -1) {
+            const userUriPart = getUserUriPart(userUri, partName);
+            const isCaseSensitive = userUriPart.isCaseSensitive() && contextOptions.caseSensitive;
+            if (!isCaseSensitive && matchItem.flags.indexOf('i') === -1) {
                 matchItem = new RegExp(matchItem.source, matchItem.flags + 'i');
             }
-            const userUriPart = getUserUriPart(userUri, partName);
             const rawValue = (userUriPart.toString() || '') + '';
             if (!matchItem.test(rawValue)) {
                 return null;
@@ -383,12 +385,11 @@ export const getFallbackGenerateFunction = ({partName, paramName}) => {
 };
 
 export const convertGenerateItemsToFunctions = (generateItems, converterOptions) => {
-    const generateFunctions = [
-        getParamGenerateFunction(converterOptions),
-        ...generateItems.map((generateItem) => {
-            return getGenerateFunctionByItem(generateItem, converterOptions);
-        }),
-        getFallbackGenerateFunction(converterOptions)
-    ];
+    const hasFunction = generateItems.some((generateItem) => typeof generateItem === 'function');
+    let generateFunctions = hasFunction ? [] : [getParamGenerateFunction(converterOptions)];
+    generateFunctions = generateFunctions.concat(generateItems.map((generateItem) => {
+        return getGenerateFunctionByItem(generateItem, converterOptions);
+    }));
+    generateFunctions.push(getFallbackGenerateFunction(converterOptions));
     return generateFunctions;
 };

@@ -6,11 +6,11 @@ export default class Port extends Part {
         this._value = +rawPort || null;
     }
 
-    toLowerCase () {
-        return this;
+    isCaseSensitive () {
+        return false;
     }
 
-    static isEqual (port1, port2) {
-        return port1.toString() === port2.toString();
+    toLowerCase () {
+        return this;
     }
 }
