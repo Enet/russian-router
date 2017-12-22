@@ -2,6 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/russian-router.svg)](https://www.npmjs.com/package/russian-router)
 [![gzip size](http://img.badgesize.io/https://npmcdn.com/russian-router/dist/russian-router.min.js?compression=gzip)](https://npmcdn.com/russian-router/dist/russian-router.min.js?compression=gzip)
+[![test coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/Enet/russian-router)
+[![stepan zhevak](https://img.shields.io/badge/stepan-zhevak-1a8b8e.svg)](https://zhevak.name)
 
 Russian router is an abstract javascript router. Despite of a short list of methods the package has powerful features. The main of ones is **matching and generating uris using the same template**. This router by itself provides only low level API and most likely you need to take a look at another packages like [server-russian-router](https://github.com/Enet/server-russian-router), [browser-russian-router](https://github.com/Enet/browser-russian-router) or [react-russian-router](https://github.com/Enet/react-russian-router).
 
