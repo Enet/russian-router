@@ -9,11 +9,14 @@ export default class TemplateUri extends Uri {
         super(rawUri);
         this._routeName = routeName;
 
-        const emptyPathComponentIndex = this._value.parsedUri.path.toArray().findIndex((component) => {
-            return !component;
-        });
-        if (emptyPathComponentIndex !== -1) {
-            throw new RouterError(RouterError.PATH_COMPONENT_EXPECTED, {routeName});
+        const parsedPathArray = this._value.parsedUri.path.toArray();
+        if (parsedPathArray.length > 1) {
+            const emptyPathComponentIndex = parsedPathArray.findIndex((component) => {
+                return !component;
+            });
+            if (emptyPathComponentIndex !== -1) {
+                throw new RouterError(RouterError.PATH_COMPONENT_EXPECTED, {routeName});
+            }
         }
     }
 

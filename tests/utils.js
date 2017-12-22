@@ -45,8 +45,10 @@ const routeUris = {
     oneOptionalRelativePathComponent: 'hello/{noun*}',
     twoOptionalRelativePathComponent: 'hello/{adjective*}/{noun*}/',
     threeOptionalRelativePathComponent: 'hello/{pronoun*}/{adjective*}/{noun*}',
-    mixedAbsolutePathComponent: '/hello/{adjective}/{noun*}/',
-    mixedRelativePathComponent: 'hello/{adjective}/{noun*}/'
+    mixedAbsolutePathComponent: '/hello/{adjective*}/{noun}/',
+    mixedRelativePathComponent: 'hello/{adjective*}/{noun}/',
+
+    externalUri: 'https://google.com/'
 };
 
 export function getRouteUri (routeName) {

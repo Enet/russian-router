@@ -42,11 +42,11 @@
     "build:dist": "webpack && webpack --output-filename=./dist/russian-router.min.js -p",
     "watch:lib": "babel src --watch --out-dir ./lib",
     "watch:dist": "webpack --watch",
-    "test": "eslint ./src && jest",
+    "test": "rm -rf ./coverage && eslint ./src && jest",
     "prepublish": "npm test && npm run clean && npm run build"
   },
   "jest": {
-    "collectCoverage": false,
+    "collectCoverage": true,
     "moduleNameMapper": {
       "^russian-router$": "<rootDir>/src/index.js",
       "^utils$": "<rootDir>/tests/utils.js"

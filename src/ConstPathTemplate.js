@@ -88,7 +88,7 @@ export default class ConstPathTemplate extends DefaultTemplate {
             for (let m = 0, ml = matchArray.length; m < ml; m++) {
                 const matchIndex = templateUriPath.isAbsolute() ? m : ml - 1 - m;
                 const matchFunctions = matchArray[matchIndex];
-                if (matchFunctions.optionalIndex && o / Math.pow(2, matchFunctions.optionalIndex) % 1 >= 0.5) {
+                if (matchFunctions.optionalIndex && o / Math.pow(2, optionalPathParamNames.length + 1 - matchFunctions.optionalIndex) % 1 >= 0.5) {
                     optionalOffset--;
                     if (templateUriPath.isAbsolute() &&
                         userUriPathComponentCount > templateUriPathComponentCount + optionalOffset) {
@@ -105,7 +105,6 @@ export default class ConstPathTemplate extends DefaultTemplate {
                     m + optionalOffset :
                     userUriPathComponentCount - 1 - m - optionalOffset;
                 const pathMatchFragment = super.matchParsedValue(userUri, contextOptions, matchFunctions);
-                console.log(pathMatchFragment, userUriPathComponentCount, m, optionalOffset);
                 if (!pathMatchFragment) {
                     continue optionalLoop;
                 }
