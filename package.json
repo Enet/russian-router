@@ -47,6 +47,7 @@
   },
   "jest": {
     "collectCoverage": true,
+    "collectCoverageFrom": ["src/**"],
     "moduleNameMapper": {
       "^russian-router$": "<rootDir>/src/index.js",
       "^utils$": "<rootDir>/tests/utils.js"
