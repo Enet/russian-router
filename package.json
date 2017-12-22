@@ -1,6 +1,6 @@
 {
   "name": "russian-router",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Universal abstract javascript router for any environment",
   "main": "lib/index.js",
   "author": "Stepan Zhevak <enet@protonmail.ch> (https://zhevak.name/)",
