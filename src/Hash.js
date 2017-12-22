@@ -5,7 +5,10 @@ import Part from './Part.js';
 
 export default class Hash extends Part {
     constructor (rawValue) {
-        super(decodeURIComponent(rawValue));
+        super(rawValue);
+        if (!isEmpty(this._value)) {
+            this._value = decodeURIComponent(this._value);
+        }
         this._isEmpty = isEmpty(rawValue);
     }
 
