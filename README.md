@@ -44,7 +44,7 @@ Router should be able to match and generate uris using the same template. It's e
 
 Any uri consists of a number of parts (so called uri components: protocol, domain, port, path, query, hash). Matching and generating are done part by part. If uri is matched, it means all the uri's parts are matched. When uri is generated, it means all the uri's parts are generated separately and joined together.
 
-When a router is matching some custom uri, it looks for only those routes from the routes' table, that can describe the uri. Finally the router returns an array of so called match objects, which contain the detailed information about matched uri in the context of a route.
+When a router is matching some custom uri, it looks for only those routes from the routes' table that can describe the uri. Finally the router returns an array of so called match objects, which contain the detailed information about matched uri in the context of a route.
 
 When a router is generating uri using some data, it gets a specific route from the routes' table and replaces all parameters with custom data. The router cares about default values and another nuances. Finally it returns a string, that is uri.
 
@@ -66,12 +66,12 @@ const rawRoutes = {
 };
 ```
 
-Here is only one route, named index. It has parametrized uri (`domain`, `optional` and `x` are parameters). All the parameters should be described in the next section `params`, that is omitted here. Below there is `options` section, applied to the route only. Fields `key`, `data` and `payload` are needed to understand what to do with a match object in the future.
+Here is only one route, named index. It has parametrized uri (`domain`, `optional` and `x` are parameters). All the parameters should be described in the next section `params` that is omitted here. Below there is `options` section, applied to the route only. Fields `key`, `data` and `payload` are needed to understand what to do with a match object in the future.
 
 In the next step the router parses `rawRoutes` and gets `parsedRoutes`. It uses parsed routes' table during all the lifecycle, which means you can't change a routes' table after initialization. Avoid those cases, when you need to modify routes in runtime. Nevertheless if you need to, new instance could be always created.
 
 ## Route's Uri
-Route's uri is a string, that parsed internally by regular expression. It contains six parts: protocol, domain, port, path, query and hash. Some of them could be omitted. Note that empty part is equal to the lack of part. Each part could be presented by constant value like `http` or parameter like `{protocol}`. Path and query are special ones, because they mix constants and parameters.
+Route's uri is a string that parsed internally by regular expression. It contains six parts: protocol, domain, port, path, query and hash. Some of them could be omitted. Note that empty part is equal to the lack of part. Each part could be presented by constant value like `http` or parameter like `{protocol}`. Path and query are special ones, because they mix constants and parameters.
 
 > Also there is one very important detail. The fact is the default values are not specified and russian-router even doesn't care about your environment. If protocol, domain or port are omitted, they are likely equal to empty strings. It's because you probably need [browser-russian-router](https://github.com/Enet/browser-russian-router), [server-russian-router](https://github.com/Enet/server-russian-router), [react-russian-router](https://github.com/Enet/react-russian-router) or override the method `getDefaultPart`.
 
@@ -87,10 +87,10 @@ Latin letters, numbers, hyphens and dots are allowed. Letter case doesn't matter
 Only numbers are allowed. Default value depends on protocol (80 for http, 443 for https). If protocol is not defined, special method `getDefaultPart` is used.
 
 #### path
-If the whole path is presented by parameter, the parameter must be a function. Path is the only part, when optional parameters are allowed. Letter case matters.
+If the whole path is presented by parameter, the parameter must be a function. Path and query are the only parts, where optional parameters are allowed. Letter case matters.
 
 #### query
-If the whole query is presented by parameter, the parameter must be a function. Only query values could be parametrized (not query keys). Letter case matters both for keys and values.
+If the whole query is presented by parameter, the parameter must be a function. Only query values could be parametrized (not query keys). Query and path are the only parts, where optional parameters are allowed. Letter case matters both for keys and values.
 
 #### hash
 Letter case matters.
@@ -124,6 +124,8 @@ Letter case matters.
 '/my/path/#zzz={zzz}';
 // Here is only one parameter yyy, because query keys couldn't be parametrized
 '/my/path/?{xxx}={yyy}';
+// Query parameter is optional here
+'/my/path/?xxx={yyy*}';
 ```
 
 </details>
@@ -299,7 +301,7 @@ At the moment it's impossible to substitute one class to another. But there is a
 - uris
     - `Uri` *// abstract parsed uri*
     - `TemplateUri` *// parsed route's uri*
-    - `UserUri` *// parsed user uri, that will be matched*
+    - `UserUri` *// parsed user uri that will be matched*
 - etc
     - `index` *// external interface*
     - `RussianRouter` *// router itself*
@@ -338,7 +340,7 @@ const rawOptions = {
 
     /* Actually this option is always transformed to function.
     If false, processing is disabled. If true, router sorts routes by priority.
-    Also could be given function, that sorts or filters match objects. */
+    Also could be given function that sorts or filters match objects. */
     processMatchObjects: true
 };
 ```
@@ -501,7 +503,39 @@ Returns an instance of `RouterOptions` based on `rawOptions`. It's called only o
 Returns an object containing `Route` instances. It's called only once during initialization. Most likely you don't need to modify routes' table, but you probably want to attach the cache. See [server-russian-router](https://github.com/Enet/server-russian-router) as an example.
 
 # :koala: Examples
-I'll be making more tests and examples over the time. More than zero!
+Look for examples in [tests](https://github.com/Enet/russian-router/tree/master/tests) directory. Test coverage is 100% so most likely you'll find what you need. Below is only the simplest example.
+
+```javascript
+import RussianRouter from 'russian-router';
+
+const options = {};
+const routes = {
+    customRouteName: {
+        uri: '/hello/{entity*}?x=1&y={y*}',
+        params: {
+            entity: /\w+/
+        }
+    }
+};
+
+const router = new RussianRouter(routes, options);
+
+router.matchUri('/hello/?x=1&y=3').length; // 1
+router.matchUri('/hello/world?x=1&y=3').length; // 1
+router.matchUri('/hello/матрёшка?x=1&y=3').length; // 0
+router.matchUri('/hello/world').length; // 0
+router.matchUri('/hello/world?x=1').length; // 1
+router.matchUri('/hello/my/world?x=1').length; // 0
+router.matchUri('/hello/world?y=3&x=1').length; // 1
+router.matchUri('/hello/world?y=3&x=1&z=123').length; // 1
+router.matchUri('/hello/world?x=1&y').length; // 1
+
+router.generateUri('customRouteName'); // '/hello?x=1'
+router.generateUri('customRouteName', {entity: 'world'}); // '/hello/world?x=1'
+router.generateUri('customRouteName', {y: 1}); // '/hello?x=1&y=1'
+router.generateUri('customRouteName', {entity: 'user', y: 2}); // '/hello/user?x=1&y=2'
+router.generateUri('customRouteName', {entity: 'матрёшка'}); // error, because data is inconsistent
+```
 
 # :bear: Contributors
 Pull requests are welcome :feet: Let improve the package together. But, please, respect the code style.
