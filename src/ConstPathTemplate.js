@@ -104,6 +104,9 @@ export default class ConstPathTemplate extends DefaultTemplate {
                 this._currentPathComponentIndex = templateUriPath.isAbsolute() ?
                     m + optionalOffset :
                     userUriPathComponentCount - 1 - m - optionalOffset;
+                if (this._currentPathComponentIndex < 0) {
+                    continue optionalLoop;
+                }
                 const pathMatchFragment = super.matchParsedValue(userUri, contextOptions, matchFunctions);
                 if (!pathMatchFragment) {
                     continue optionalLoop;
